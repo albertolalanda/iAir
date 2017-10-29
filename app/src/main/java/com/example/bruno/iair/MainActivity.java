@@ -10,6 +10,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 startActivity(appInfo);
             }
         });
+
     }
 
 
@@ -59,8 +61,24 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         searchView.setSubmitButtonEnabled(true);
         searchView.setOnQueryTextListener(this);
 
+        MenuItem cityItem = (MenuItem) menu.findItem(R.id.btnCity).getActionView();
+
+
         return super.onCreateOptionsMenu(menu);
 
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.btnCity:
+                Intent appInfo = new Intent(MainActivity.this, CityListActivity.class);
+                startActivity(appInfo);
+                break;
+            default:
+        }
+
+        return true;
     }
 
     @Override
