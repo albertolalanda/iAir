@@ -15,8 +15,6 @@ public class CityActivity extends AppCompatActivity {
 
     private TextView txtCity;
     private CheckBox chkFavorite;
-    private Button btnSave;
-    private Button btnCancel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,8 +29,7 @@ public class CityActivity extends AppCompatActivity {
 
         txtCity = findViewById(R.id.txtCityName);
         chkFavorite = findViewById(R.id.chkFavorite);
-        btnSave = findViewById(R.id.btnSave);
-        btnCancel = findViewById(R.id.btnCancel);
+
 
         txtCity.setText(city);
 
