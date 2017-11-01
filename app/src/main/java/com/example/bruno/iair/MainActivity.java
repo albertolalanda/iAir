@@ -3,6 +3,9 @@ package com.example.bruno.iair;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
@@ -14,18 +17,51 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
+
+
+import org.json.JSONException;
 
 public class MainActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
 
     private SearchView searchView;
     private ListView listOfCities;
     private ArrayAdapter<String> cAdapter;
+    private LinearLayout layOutInfo;
+
+    public static TextView cityText;
+    private TextView condDescr;
+    public static TextView temp;
+    private TextView press;
+    private TextView windSpeed;
+    private TextView windDeg;
+
+    private TextView hum;
+    private ImageView imgView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        int cityID = 8010549;
+
+        showCityData(cityID);
+
+
+        layOutInfo = findViewById(R.id.layOutTInfo);
+        cityText = (TextView) findViewById(R.id.cityText);
+        condDescr = (TextView) findViewById(R.id.condDescr);
+        temp = (TextView) findViewById(R.id.temp);
+        hum = (TextView) findViewById(R.id.hum);
+        press = (TextView) findViewById(R.id.press);
+        windSpeed = (TextView) findViewById(R.id.windSpeed);
+        windDeg = (TextView) findViewById(R.id.windDeg);
+        imgView = (ImageView) findViewById(R.id.condIcon);
+
 //
 //        MAIN_MENU
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -44,9 +80,15 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 String data = listOfCities.getAdapter().getItem(position).toString();
                 appInfo.putExtra("city", data);
                 startActivity(appInfo);
+
             }
         });
 
+    }
+
+    public void showCityData(int cityID){
+        Downloadtask task = new Downloadtask();
+        task.execute("http://api.openweathermap.org/data/2.5/weather?id=" + String.valueOf(cityID) + "&appid=a6cc0f2217529c147f4faf6acb886793");
     }
 
 
@@ -66,7 +108,12 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
         return super.onCreateOptionsMenu(menu);
 
+
+
     }
+
+
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -90,7 +137,12 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     public boolean onQueryTextChange(String newText) {
         if (TextUtils.isEmpty(newText)) {
             listOfCities.clearTextFilter();
+            layOutInfo.setVisibility(View.VISIBLE);
+            listOfCities.setVisibility(View.INVISIBLE);
         } else {
+            listOfCities.setVisibility(View.VISIBLE);
+            layOutInfo.setVisibility(View.GONE);
+            showCityData(8013136);
             listOfCities.setFilterText(newText.toString());
         }
 
