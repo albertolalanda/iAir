@@ -17,12 +17,12 @@ import java.net.URL;
  */
 
 public class Downloadtask extends AsyncTask<String,Void,String> {
-
+    String result = "";
+    URL url;
+    HttpURLConnection urlConnection = null;
     @Override
     protected String doInBackground(String... strings) {
-        String result = "";
-        URL url;
-        HttpURLConnection urlConnection = null;
+
         try {
             url = new URL(strings[0]);
 
@@ -61,15 +61,9 @@ public class Downloadtask extends AsyncTask<String,Void,String> {
 
             double tempInt = Double.parseDouble(weatherDatas.getString("temp"));
 
-            int temp = (int)  (tempInt - 273.15 ) * 1;
+            MainActivity.temp.setText(String.valueOf(tempInt) + "C");
 
-            String placename = jsonObject.getString("name");
-            MainActivity.cityText.setText(placename);
-            MainActivity.temp.setText(String.valueOf(temp) + "ºC");
-
-            //MainActivity.temp.setText(String.valueOf(tempInt) + "C");
-
-            //MainActivity.cityText.setText(jsonObject.getString("name"));
+            MainActivity.cityText.setText(jsonObject.getString("name"));
 
             JSONArray jsonArray = new JSONArray(weatherInfo);
 

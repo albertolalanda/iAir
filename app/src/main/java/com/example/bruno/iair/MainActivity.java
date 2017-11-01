@@ -47,9 +47,9 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        int cityID = 8010549;
+        String city = "Lisbon";
 
-        showCityData(cityID);
+       // showCityData(city);
 
 
         layOutInfo = findViewById(R.id.layOutTInfo);
@@ -86,11 +86,11 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     }
 
-    public void showCityData(int cityID){
+   /* public void showCityData(String cityID){
         Downloadtask task = new Downloadtask();
-        task.execute("http://api.openweathermap.org/data/2.5/weather?id=" + String.valueOf(cityID) + "&appid=a6cc0f2217529c147f4faf6acb886793");
+        task.execute("http://api.waqi.info/feed/"+ cityID +"/?token=c926f68c35165c6286fa37999cf236d5e0dc7662");
     }
-
+*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -137,12 +137,12 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     public boolean onQueryTextChange(String newText) {
         if (TextUtils.isEmpty(newText)) {
             listOfCities.clearTextFilter();
-            layOutInfo.setVisibility(View.VISIBLE);
-            listOfCities.setVisibility(View.INVISIBLE);
+            //layOutInfo.setVisibility(View.VISIBLE);
+            //listOfCities.setVisibility(View.INVISIBLE);
         } else {
             listOfCities.setVisibility(View.VISIBLE);
-            layOutInfo.setVisibility(View.GONE);
-            showCityData(8013136);
+            //layOutInfo.setVisibility(View.GONE);
+            //showCityData("Lisbon");
             listOfCities.setFilterText(newText.toString());
         }
 

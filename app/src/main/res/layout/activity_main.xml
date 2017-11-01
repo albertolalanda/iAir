@@ -20,7 +20,8 @@
         android:id="@+id/layOutTInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="gone">
 
         <ImageView
             android:id="@+id/condIcon"
@@ -117,6 +118,6 @@
         android:id="@+id/lst_cities"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="invisible" />
+        android:visibility="visible" />
 
 </LinearLayout>
