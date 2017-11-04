@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.bruno.iair.CityListActivity">
+    tools:context="com.example.bruno.iair.activities.CityListActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/my_toolbar"
@@ -27,5 +27,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:layout_editor_absoluteX="8dp"
+        tools:listitem="@layout/item_city"
         tools:layout_editor_absoluteY="48dp" />
 </LinearLayout>

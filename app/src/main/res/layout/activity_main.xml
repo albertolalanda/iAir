@@ -5,10 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.bruno.iair.MainActivity">
+    tools:context="com.example.bruno.iair.activities.MainActivity">
 
     <android.support.v7.widget.Toolbar
-        android:id="@+id/my_toolbar"
+        android:id="@+id/main_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@android:color/holo_green_light"
@@ -115,9 +115,11 @@
     </LinearLayout>
 
     <ListView
-        android:id="@+id/lst_cities"
+        android:id="@+id/listOfCities"
+        style="@style/Widget.AppCompat.ListView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="visible" />
+        android:visibility="visible"
+        tools:listitem="@layout/item_city" />
 
 </LinearLayout>
