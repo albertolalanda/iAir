@@ -22,13 +22,14 @@ import java.util.LinkedList;
 public class CityListActivity extends AppCompatActivity {
     private ListView listOfCities;
     private ArrayAdapter<City> cAdapter;
+    private CheckBox ch;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_city_list);
 
 
-
+        ch = findViewById(R.id.checkBoxFavorite);
 
 
 
@@ -38,12 +39,13 @@ public class CityListActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
 
         Spinner spinner = findViewById(R.id.countrySpinner);
-        final String[] countrys = {"Portugal","Spain","France","USA"};
+        final String[] countries = {"Portugal","Spain","France","USA"};
         ArrayAdapter<String> cAdapter2;
-        spinner.setAdapter(cAdapter2 = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, countrys));
+        spinner.setAdapter(cAdapter2 = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, countries));
 
         listOfCities = findViewById(R.id.cityList);
         listOfCities.setAdapter(cAdapter = new ArrayAdapter<City>(this, R.layout.item_city,R.id.textViewCityName,DashBoardActivity.getCities()));
+
 
         listOfCities.setTextFilterEnabled(true);
 

@@ -36,7 +36,7 @@ public class DashBoardActivity extends AppCompatActivity {
     private TextView cityCarbonMonoxideData;
     private TextView cityNitrogenDioxide;
     private TextView cityNitrogenDioxideData;
-    public CheckBox checkFavorite;
+    private CheckBox checkFavorite;
 
     @SuppressLint("ResourceAsColor")
     @Override
@@ -77,11 +77,11 @@ public class DashBoardActivity extends AppCompatActivity {
         cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + " ppm");
         cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
         cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
-
         if (favoriteCity.isFavorite()){
-            checkFavorite.setBackgroundColor(R.color.colorAccent);
-
+            checkFavorite.setChecked(true);
         }
+
+
 
 
     }
