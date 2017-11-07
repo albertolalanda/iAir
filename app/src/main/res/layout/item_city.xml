@@ -23,12 +23,11 @@
         android:layout_weight="1" />
 
     <RadioButton
-        android:id="@+id/checkBoxFavorite"
+        android:id="@+id/radioFavorite"
+        style="@android:style/Widget.CompoundButton.Star"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:button="@drawable/radios"
-        android:checked="false"
         tools:text="favorite" />
 
 </LinearLayout>
