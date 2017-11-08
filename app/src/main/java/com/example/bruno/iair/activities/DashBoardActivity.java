@@ -1,14 +1,23 @@
 package com.example.bruno.iair.activities;
 
 import android.annotation.SuppressLint;
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.bruno.iair.R;
@@ -16,10 +25,9 @@ import com.example.bruno.iair.models.City;
 
 import java.util.LinkedList;
 
-public class DashBoardActivity extends AppCompatActivity {
+public class DashBoardActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
 
     public static LinkedList<City> cities;
-
 
 
     private City favoriteCity;
@@ -35,6 +43,10 @@ public class DashBoardActivity extends AppCompatActivity {
     private TextView cityNitrogenDioxide;
     private TextView cityNitrogenDioxideData;
     private CheckBox checkFavorite;
+    private LinearLayout layoutInfo;
+    private ListView listViewOfCities;
+    private SearchView searchView;
+    private ArrayAdapter<City> adapter;
 
     @SuppressLint("ResourceAsColor")
     @Override
@@ -45,19 +57,25 @@ public class DashBoardActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
 
 
-    cities = new LinkedList<City>();
-    cityName = findViewById(R.id.textViewCityName);
-    cityTemperature = findViewById(R.id.textViewCityTemperature);
-    cityTemperatureData = findViewById(R.id.textViewTemperatureData);
-    cityHumidity = findViewById(R.id.textViewCityHumidity);
-    cityHumidityData = findViewById(R.id.textViewHumidityData);
-    cityOzone = findViewById(R.id.textViewCityOzone);
-    cityOzoneData = findViewById(R.id.textViewOzoneData);
-    cityCarbonMonoxide = findViewById(R.id.textViewCarbonMonoxide);
-    cityCarbonMonoxideData = findViewById(R.id.textViewCarbonMonoxideData);
-    cityNitrogenDioxide = findViewById(R.id.textViewNitrogenDioxide);
-    cityNitrogenDioxideData = findViewById(R.id.textViewNitrogenMonoxideData);
-    checkFavorite = findViewById(R.id.checkBoxFavorite);
+        cities = new LinkedList<City>();
+        cityName = findViewById(R.id.textViewCityName);
+        cityTemperature = findViewById(R.id.textViewCityTemperature);
+        cityTemperatureData = findViewById(R.id.textViewTemperatureData);
+        cityHumidity = findViewById(R.id.textViewCityHumidity);
+        cityHumidityData = findViewById(R.id.textViewHumidityData);
+        cityOzone = findViewById(R.id.textViewCityOzone);
+        cityOzoneData = findViewById(R.id.textViewOzoneData);
+        cityCarbonMonoxide = findViewById(R.id.textViewCarbonMonoxide);
+        cityCarbonMonoxideData = findViewById(R.id.textViewCarbonMonoxideData);
+        cityNitrogenDioxide = findViewById(R.id.textViewNitrogenDioxide);
+        cityNitrogenDioxideData = findViewById(R.id.textViewNitrogenMonoxideData);
+        checkFavorite = findViewById(R.id.checkBoxFavorite);
+        layoutInfo = findViewById(R.id.layoutInfoo);
+        listViewOfCities = findViewById(R.id.cityList);
+        adapter = new ArrayAdapter<City>(this, R.layout.item_city, R.id.textViewCityName, cities);
+        listViewOfCities.setAdapter(adapter);
+        listViewOfCities.setTextFilterEnabled(true);
+
 
         populateCities();
         cities.get(1).setFavorite(true);
@@ -76,14 +94,40 @@ public class DashBoardActivity extends AppCompatActivity {
         cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
         cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
 
-        if (favoriteCity.isFavorite()){
+        if (favoriteCity.isFavorite()) {
             checkFavorite.setChecked(true);
         }
 
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
 
+        if (null != searchView) {
 
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+            searchView.setIconifiedByDefault(false);
+        }
+
+        listViewOfCities.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                Intent appInfo = new Intent(DashBoardActivity.this, CityActivity.class);
+                String data = listViewOfCities.getAdapter().getItem(position).toString();
+                appInfo.putExtra("city", data);
+                startActivity(appInfo);
+            }
+        });
 
     }
+
+
+
+
+    private void setupSearchView() {
+        searchView.setIconifiedByDefault(false);
+        searchView.setOnQueryTextListener((SearchView.OnQueryTextListener) this);
+        searchView.setSubmitButtonEnabled(true);
+        searchView.setQueryHint("Search Here");
+    }
+
 
     public static LinkedList<City> getCities() {
         return cities;
@@ -106,10 +150,17 @@ public class DashBoardActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.main_menu, menu);
+        searchView = (SearchView) menu.findItem(R.id.btnSearch).getActionView();
+
         MenuItem item = menu.findItem(R.id.btnBack);
+
+        setupSearchView();
+
         item.setVisible(false);
         return true;
     }
+
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -119,7 +170,14 @@ public class DashBoardActivity extends AppCompatActivity {
                 Intent appInfo = new Intent(DashBoardActivity.this, CityListActivity.class);
                 startActivity(appInfo);
                 break;
+            case R.id.btnSearch:
+                layoutInfo.setVisibility(View.GONE);
+                listViewOfCities.setVisibility(View.VISIBLE);
+                break;
+
             default:
+                layoutInfo.setVisibility(View.VISIBLE);
+                listViewOfCities.setVisibility(View.GONE);
         }
 
         return true;
@@ -137,4 +195,22 @@ public class DashBoardActivity extends AppCompatActivity {
             }
         }
     }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        if (TextUtils.isEmpty(newText)){
+            listViewOfCities.clearTextFilter();
+        } else {
+
+            listViewOfCities.setFilterText(newText);
+        }
+        return true;
+    }
+
+
 }
