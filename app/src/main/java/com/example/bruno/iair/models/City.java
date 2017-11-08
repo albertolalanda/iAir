@@ -10,7 +10,7 @@ public class City {
 
     /*DEFINE VARS*/
     private String name;
-    private String country;
+    private Country country;
     private double latitude;
     private double longitude;
     private double temperature;
@@ -27,7 +27,7 @@ public class City {
 
     }
 
-    public City(String name, String country, double latitude, double longitude, double temperature, double humidity, double ozoneO3, double carbonMonoxideCO, double nitrogenDioxideNO2) {
+    public City(String name, Country country, double latitude, double longitude, double temperature, double humidity, double ozoneO3, double carbonMonoxideCO, double nitrogenDioxideNO2) {
         this.name = name;
         this.country = country;
         this.latitude = latitude;
@@ -71,11 +71,11 @@ public class City {
         this.name = name;
     }
 
-    public String getCountry() {
+    public Country getCountry() {
         return country;
     }
 
-    public void setCountry(String country) {
+    public void setCountry(Country country) {
         this.country = country;
     }
 
