@@ -2,8 +2,8 @@ package com.example.bruno.iair.activities;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -15,8 +15,6 @@ import com.example.bruno.iair.R;
 import com.example.bruno.iair.models.City;
 
 import java.util.LinkedList;
-
-import static com.example.bruno.iair.R.color.colorAccent;
 
 public class DashBoardActivity extends AppCompatActivity {
 
@@ -62,7 +60,7 @@ public class DashBoardActivity extends AppCompatActivity {
     checkFavorite = findViewById(R.id.checkBoxFavorite);
 
         populateCities();
-        cities.get(0).setFavorite(true);
+        cities.get(1).setFavorite(true);
 
         favoriteCity = City.getFavoriteCity(cities);
 
@@ -77,6 +75,7 @@ public class DashBoardActivity extends AppCompatActivity {
         cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + " ppm");
         cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
         cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
+
         if (favoriteCity.isFavorite()){
             checkFavorite.setChecked(true);
         }
@@ -126,4 +125,16 @@ public class DashBoardActivity extends AppCompatActivity {
         return true;
     }
 
+    public static void updateFavorite(String city) {
+        for (City c:cities){
+            if(c.isFavorite()){
+                c.setFavorite(false);
+            }
+        }
+        for (City c:cities){
+            if(c.getName()==city){
+                c.setFavorite(true);
+            }
+        }
+    }
 }

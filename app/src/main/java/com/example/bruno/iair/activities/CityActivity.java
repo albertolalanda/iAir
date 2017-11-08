@@ -7,6 +7,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
@@ -27,7 +28,7 @@ public class CityActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
 
         Intent intent = getIntent();
-        String city = intent.getStringExtra("city");
+        final String city = intent.getStringExtra("city");
 
         txtCity = findViewById(R.id.txtCityName);
         chkFavorite = findViewById(R.id.chkFavorite);
@@ -35,7 +36,14 @@ public class CityActivity extends AppCompatActivity {
 
         txtCity.setText(city);
 
-
+        chkFavorite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(chkFavorite.isChecked()){
+                    DashBoardActivity.updateFavorite(city);
+                }
+            }
+        });
     }
 
     @Override
