@@ -60,11 +60,11 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
         countries = new LinkedList<Country>();
         countries = DashBoardActivity.getCountries();
 
-        for(City city:filteredCities){
+        /*for(City city:filteredCities){
             if(city.isFavorite()){
                 selectedPosition=filteredCities.indexOf(city);
             }
-        }
+        }*/
 
         //        MAIN_MENU
         Toolbar myToolbar = findViewById(R.id.my_toolbar);
@@ -79,7 +79,7 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
         spinner.setOnItemSelectedListener(this);
 
         listOfCities = findViewById(R.id.cityList);
-        cAdapter = new ArrayAdapter<City>(this, R.layout.item_city, R.id.textViewCityName, filteredCities) {
+        /*cAdapter = new ArrayAdapter<City>(this, R.layout.item_city, R.id.textViewCityName, filteredCities) {
 
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
@@ -107,7 +107,7 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
             }
 
         };
-        listOfCities.setAdapter(cAdapter);
+        listOfCities.setAdapter(cAdapter);*/
 
         listOfCities.setTextFilterEnabled(true);
 
@@ -159,6 +159,18 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
             }
         }
 
+        int i=0;
+        for(City city:filteredCities){
+            if(city.isFavorite()){
+                i++;
+                selectedPosition=filteredCities.indexOf(city);
+            }
+        }
+
+        if(i==0){
+            selectedPosition=-1;
+        }
+
         cAdapter = new ArrayAdapter<City>(this, R.layout.item_city, R.id.textViewCityName, filteredCities) {
 
             @Override
@@ -188,11 +200,6 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
 
         };
         listOfCities.setAdapter(cAdapter);
-        for(City city:filteredCities){
-            if(city.isFavorite()){
-                selectedPosition=filteredCities.indexOf(city);
-            }
-        }
     }
 
 
