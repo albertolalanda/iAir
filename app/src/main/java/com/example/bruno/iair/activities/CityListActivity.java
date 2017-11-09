@@ -1,10 +1,14 @@
 package com.example.bruno.iair.activities;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -13,15 +17,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.location.LocationManager;
+import android.widget.Toast;
+
 
 import com.example.bruno.iair.R;
 import com.example.bruno.iair.models.City;
+import com.example.bruno.iair.services.GPSTracker;
 
 import java.util.LinkedList;
+import java.util.concurrent.TimeUnit;
 
 public class CityListActivity extends AppCompatActivity {
     private ListView listOfCities;
@@ -85,7 +95,6 @@ public class CityListActivity extends AppCompatActivity {
         };
         listOfCities.setAdapter(cAdapter);
 
-
         listOfCities.setTextFilterEnabled(true);
 
         listOfCities.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -98,7 +107,116 @@ public class CityListActivity extends AppCompatActivity {
                 startActivity(appInfo);
             }
         });
+
+        Button btnCurrentLocation=findViewById(R.id.btnCurrentLocation);
+        btnCurrentLocation.setOnClickListener(new View.OnClickListener()   {
+            public void onClick(View v)  {
+                try {
+                    City city = CityListActivity.this.currentLocation();
+                    Intent appInfo = new Intent(CityListActivity.this, CityActivity.class);
+                    appInfo.putExtra("city", city.getName());
+                    startActivity(appInfo);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+
+
+
     }
+
+
+
+    private City currentLocation(){
+        GPSTracker gps = new GPSTracker(this);
+
+        City nearestCity = null;
+        double kmAux = 0;
+        double kmNearest = 0;
+        // check if GPS location can get Location
+        if (gps.canGetLocation()) {
+
+            LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                Log.d("Your Location", "latitude:" + gps.getLatitude()
+                        + ", longitude: " + gps.getLongitude());
+
+                double lon = gps.getLongitude();
+                double lat = gps.getLatitude();
+
+                for(City city:cities){
+                    kmAux = getDistanceFromLatLonInKm(lat, lon, city.getLatitude(), city.getLongitude());
+                    if (kmNearest > kmAux || kmNearest == 0){
+                        kmNearest = kmAux;
+                        nearestCity = city;
+                    }
+                }
+            }
+        }
+
+        Toast.makeText(CityListActivity.this, "Nearest City is " + nearestCity.getName() + " " +roundOff(kmNearest) +"km away...", Toast.LENGTH_LONG).show();
+
+
+
+
+        return nearestCity;
+
+    }
+
+    public double getDistanceFromLatLonInKm(double lat1, double lon1, double lat2, double lon2)
+    {
+        double R = 6371; // Radius of the earth in km
+        double dLat = deg2rad(lat2-lat1);  // deg2rad below
+        double dLon = deg2rad(lon2-lon1);
+        double a =
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                                Math.sin(dLon/2) * Math.sin(dLon/2)
+                ;
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double d = R * c; // Distance in km
+        return d;
+    }
+
+
+
+    public double deg2rad(double deg) {
+        return (deg * (Math.PI/180));
+    }
+
+    public double roundOff(double input){
+        return (double) Math.round(input * 100) / 100;
+    }
+
+
+
+    /*private boolean isLocationEnabled() {
+        return LocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || LocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    }*/
+
+    /*private void showAlert() {
+        final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle("Enable Location")
+                .setMessage("Your Locations Settings is set to 'Off'.\nPlease Enable Location to " +
+                        "use this app")
+                .setPositiveButton("Location Settings", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                        Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivity(myIntent);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                    }
+                });
+        dialog.show();
+    }*/
+
 
     
     @Override

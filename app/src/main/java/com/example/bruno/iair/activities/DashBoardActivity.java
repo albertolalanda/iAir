@@ -121,6 +121,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
 
 
 
+
     private void setupSearchView() {
         searchView.setIconifiedByDefault(false);
         searchView.setOnQueryTextListener((SearchView.OnQueryTextListener) this);
@@ -139,9 +140,9 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
 
 
     public void populateCities(){
-        cities.add(new City("Lisbon", "PT", 30.22, -8.23, 30.0, 18.43, 60.55, 60.55, 60.55));
-        cities.add(new City("Leiria", "PT", 30.22, -8.23, 30.0, 18.43, 60.55, 60.55, 60.55));
-        cities.add(new City("Porto", "PT", 30.22, -8.23, 30.0, 18.43, 60.55, 60.55, 60.55));
+        cities.add(new City("Lisbon", "PT", 38.7223263, -9.1392714, 30.0, 18.43, 60.55, 60.55, 60.55));
+        cities.add(new City("Leiria", "PT", 39.7495331, -8.807683, 30.0, 18.43, 60.55, 60.55, 60.55));
+        cities.add(new City("Porto", "PT", 41.1579438, -8.6291053, 30.0, 18.43, 60.55, 60.55, 60.55));
 
     };
 

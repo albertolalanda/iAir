@@ -33,7 +33,6 @@ public class CityActivity extends AppCompatActivity {
         txtCity = findViewById(R.id.txtCityName);
         chkFavorite = findViewById(R.id.chkFavorite);
 
-
         txtCity.setText(city);
 
         chkFavorite.setOnClickListener(new View.OnClickListener() {
