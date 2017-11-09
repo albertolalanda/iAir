@@ -22,22 +22,30 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.location.LocationManager;
 import android.widget.Toast;
+import android.location.LocationManager;
 
 
 import com.example.bruno.iair.R;
 import com.example.bruno.iair.models.City;
 import com.example.bruno.iair.services.GPSTracker;
+import com.example.bruno.iair.models.Country;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class CityListActivity extends AppCompatActivity {
+public class CityListActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     private ListView listOfCities;
     private ArrayAdapter<City> cAdapter;
     public int selectedPosition;
     public LinkedList<City> cities;
+    public LinkedList<City> filteredCities;
+    public LinkedList<Country> countries;
+    public String selectedCountry;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,9 +55,14 @@ public class CityListActivity extends AppCompatActivity {
         cities = new LinkedList<City>();
         cities = DashBoardActivity.getCities();
 
-        for(City city:cities){
+        filteredCities = (LinkedList<City>) cities.clone();
+
+        countries = new LinkedList<Country>();
+        countries = DashBoardActivity.getCountries();
+
+        for(City city:filteredCities){
             if(city.isFavorite()){
-                selectedPosition=cities.indexOf(city);
+                selectedPosition=filteredCities.indexOf(city);
             }
         }
 
@@ -58,14 +71,23 @@ public class CityListActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
 
         Spinner spinner = findViewById(R.id.countrySpinner);
-        final String[] countries = {"Portugal","Spain","France","USA"};
-        ArrayAdapter<String> cAdapter2;
-        spinner.setAdapter(cAdapter2 = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, countries));
+
+        ArrayAdapter<Country> cAdapter2;
+        spinner.setAdapter(cAdapter2 = new ArrayAdapter<Country>(this, android.R.layout.simple_list_item_1, countries));
+
+        /*
+        selectedCountry = spinner.getSelectedItem().toString();
+
+        for (City ct : filteredCities){
+            if(ct.getCountry().getName() != selectedCountry){
+                filteredCities.remove(ct);
+            }
+        }
+        */
+        spinner.setOnItemSelectedListener(this);
 
         listOfCities = findViewById(R.id.cityList);
-        cAdapter = new ArrayAdapter<City>(this, R.layout.item_city, R.id.textViewCityName, cities) {
-
-
+        cAdapter = new ArrayAdapter<City>(this, R.layout.item_city, R.id.textViewCityName, filteredCities) {
 
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
@@ -76,7 +98,7 @@ public class CityListActivity extends AppCompatActivity {
                     RadioButton r = v.findViewById(R.id.radioFavorite);
                 }
                 TextView tv = v.findViewById(R.id.textViewCityName);
-                tv.setText(cities.get(position).toString());
+                tv.setText(filteredCities.get(position).toString());
                 RadioButton r = v.findViewById(R.id.radioFavorite);
                 r.setChecked(position == selectedPosition);
                 r.setTag(position);
@@ -86,7 +108,7 @@ public class CityListActivity extends AppCompatActivity {
                     public void onClick(View view) {
                         selectedPosition = (Integer)view.getTag();
                         notifyDataSetChanged();
-                        DashBoardActivity.updateFavorite(cities.get(selectedPosition).toString());
+                        DashBoardActivity.updateFavorite(filteredCities.get(selectedPosition).toString());
                     }
                 });
                 return v;
@@ -96,6 +118,7 @@ public class CityListActivity extends AppCompatActivity {
         listOfCities.setAdapter(cAdapter);
 
         listOfCities.setTextFilterEnabled(true);
+
 
         listOfCities.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -122,9 +145,19 @@ public class CityListActivity extends AppCompatActivity {
             }
         });
 
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        // On selecting a spinner item
+        String item = parent.getItemAtPosition(position).toString();
 
+        // Showing selected spinner item
+        Toast.makeText(parent.getContext(), "Selected: " + item, Toast.LENGTH_LONG).show();
 
+        selectedCountry = item;
+        System.out.println(item);
+        System.out.println(filteredCities);
+        filteredCities = (LinkedList<City>) cities.clone();
 
+        System.out.println(cities);
     }
 
 
@@ -219,8 +252,23 @@ public class CityListActivity extends AppCompatActivity {
         dialog.show();
     }
 
+        Iterator<City> iterator = filteredCities.iterator();
 
-    
+        while (iterator.hasNext()){
+            City cc = iterator.next();
+            if (cc.getCountry().getName() != selectedCountry){
+                iterator.remove();    // You can do the modification here.
+            }
+        }
+        ArrayAdapter<City> adapter = new ArrayAdapter<City>(this, R.layout.item_city, R.id.textViewCityName,filteredCities);
+        listOfCities.setAdapter(adapter);
+    }
+
+    public void onNothingSelected(AdapterView<?> arg0) {
+        // TODO Auto-generated method stub
+    }
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();

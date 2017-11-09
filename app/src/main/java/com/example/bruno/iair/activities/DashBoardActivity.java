@@ -22,12 +22,15 @@ import android.widget.TextView;
 
 import com.example.bruno.iair.R;
 import com.example.bruno.iair.models.City;
+import com.example.bruno.iair.models.Country;
 
 import java.util.LinkedList;
 
 public class DashBoardActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
 
     public static LinkedList<City> cities;
+    public static LinkedList<Country> countries;
+
 
 
     private City favoriteCity;
@@ -58,6 +61,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
 
 
         cities = new LinkedList<City>();
+        countries = new LinkedList<Country>();
         cityName = findViewById(R.id.textViewCityName);
         cityTemperature = findViewById(R.id.textViewCityTemperature);
         cityTemperatureData = findViewById(R.id.textViewTemperatureData);
@@ -77,6 +81,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         listViewOfCities.setTextFilterEnabled(true);
 
 
+        populateCountries();
         populateCities();
         cities.get(1).setFavorite(true);
 
@@ -133,17 +138,33 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
     public static LinkedList<City> getCities() {
         return cities;
     }
+    public static LinkedList<Country> getCountries() {
+        return countries;
+    }
 
     public static void setCities(LinkedList<City> cities) {
         DashBoardActivity.cities = cities;
     }
 
+    public void populateCountries(){
+        countries.add(new Country("Portugal", "PT"));
+        countries.add(new Country("Spain", "ES"));
+    }
+
+    public Country findCountryWithID(String id){
+        for (Country c : countries ) {
+            if(c.getId()==id){
+                return c;
+            }
+        }
+        return null;
+    }
 
     public void populateCities(){
         cities.add(new City("Lisbon", "PT", 38.7223263, -9.1392714, 30.0, 18.43, 60.55, 60.55, 60.55));
         cities.add(new City("Leiria", "PT", 39.7495331, -8.807683, 30.0, 18.43, 60.55, 60.55, 60.55));
         cities.add(new City("Porto", "PT", 41.1579438, -8.6291053, 30.0, 18.43, 60.55, 60.55, 60.55));
-
+        cities.add(new City("Barcelona", findCountryWithID("ES"), 30.22, -8.23, 30.0, 18.43, 60.55, 60.55, 60.55));
     };
 
 
