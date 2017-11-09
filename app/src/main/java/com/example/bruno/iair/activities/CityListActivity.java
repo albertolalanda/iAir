@@ -75,15 +75,7 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
         ArrayAdapter<Country> cAdapter2;
         spinner.setAdapter(cAdapter2 = new ArrayAdapter<Country>(this, android.R.layout.simple_list_item_1, countries));
 
-        /*
-        selectedCountry = spinner.getSelectedItem().toString();
 
-        for (City ct : filteredCities){
-            if(ct.getCountry().getName() != selectedCountry){
-                filteredCities.remove(ct);
-            }
-        }
-        */
         spinner.setOnItemSelectedListener(this);
 
         listOfCities = findViewById(R.id.cityList);
@@ -98,7 +90,7 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
                     RadioButton r = v.findViewById(R.id.radioFavorite);
                 }
                 TextView tv = v.findViewById(R.id.textViewCityName);
-                tv.setText(filteredCities.get(position).toString());
+                tv.setText(cities.get(position).toString());
                 RadioButton r = v.findViewById(R.id.radioFavorite);
                 r.setChecked(position == selectedPosition);
                 r.setTag(position);
@@ -166,8 +158,41 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
                 iterator.remove();    // You can do the modification here.
             }
         }
-        ArrayAdapter<City> adapter = new ArrayAdapter<City>(this, R.layout.item_city, R.id.textViewCityName,filteredCities);
-        listOfCities.setAdapter(adapter);
+
+        cAdapter = new ArrayAdapter<City>(this, R.layout.item_city, R.id.textViewCityName, filteredCities) {
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View v = convertView;
+                if (v == null) {
+                    LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    v = vi.inflate(R.layout.item_city, null);
+                    RadioButton r = v.findViewById(R.id.radioFavorite);
+                }
+                TextView tv = v.findViewById(R.id.textViewCityName);
+                tv.setText(filteredCities.get(position).toString());
+                RadioButton r = v.findViewById(R.id.radioFavorite);
+                r.setChecked(position == selectedPosition);
+                r.setTag(position);
+
+                r.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        selectedPosition = (Integer)view.getTag();
+                        notifyDataSetChanged();
+                        DashBoardActivity.updateFavorite(filteredCities.get(selectedPosition).toString());
+                    }
+                });
+                return v;
+            }
+
+        };
+        listOfCities.setAdapter(cAdapter);
+        for(City city:filteredCities){
+            if(city.isFavorite()){
+                selectedPosition=filteredCities.indexOf(city);
+            }
+        }
     }
 
 

@@ -35,6 +35,11 @@ public class CityActivity extends AppCompatActivity {
 
         txtCity.setText(city);
 
+        if(DashBoardActivity.isCityFavorite(city)){
+            chkFavorite.setChecked(true);
+            chkFavorite.setEnabled(false);
+        }
+
         chkFavorite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

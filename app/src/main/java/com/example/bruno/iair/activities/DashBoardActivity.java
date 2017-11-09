@@ -217,6 +217,14 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
             }
         }
     }
+    public static boolean isCityFavorite(String city) {
+        for(City c : cities){
+            if(c.getName().equals(city)){
+                return c.isFavorite();
+            }
+        }
+        return false;
+    }
 
     @Override
     public boolean onQueryTextSubmit(String query) {
