@@ -155,6 +155,8 @@ public class CityListActivity extends AppCompatActivity {
                     }
                 }
             }
+        }else{
+            showAlert();
         }
 
         Toast.makeText(CityListActivity.this, "Nearest City is " + nearestCity.getName() + " " +roundOff(kmNearest) +"km away...", Toast.LENGTH_LONG).show();
@@ -197,7 +199,7 @@ public class CityListActivity extends AppCompatActivity {
         return LocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || LocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
     }*/
 
-    /*private void showAlert() {
+    private void showAlert() {
         final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
         dialog.setTitle("Enable Location")
                 .setMessage("Your Locations Settings is set to 'Off'.\nPlease Enable Location to " +
@@ -215,7 +217,7 @@ public class CityListActivity extends AppCompatActivity {
                     }
                 });
         dialog.show();
-    }*/
+    }
 
 
     
