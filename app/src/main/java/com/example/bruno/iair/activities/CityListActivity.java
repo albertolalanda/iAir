@@ -143,7 +143,7 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
                     e.printStackTrace();
                 }
             }
-        });
+        });}
 
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         // On selecting a spinner item
@@ -158,6 +158,16 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
         filteredCities = (LinkedList<City>) cities.clone();
 
         System.out.println(cities);
+        Iterator<City> iterator = filteredCities.iterator();
+
+        while (iterator.hasNext()){
+            City cc = iterator.next();
+            if (cc.getCountry().getName() != selectedCountry){
+                iterator.remove();    // You can do the modification here.
+            }
+        }
+        ArrayAdapter<City> adapter = new ArrayAdapter<City>(this, R.layout.item_city, R.id.textViewCityName,filteredCities);
+        listOfCities.setAdapter(adapter);
     }
 
 
@@ -252,17 +262,7 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
         dialog.show();
     }
 
-        Iterator<City> iterator = filteredCities.iterator();
 
-        while (iterator.hasNext()){
-            City cc = iterator.next();
-            if (cc.getCountry().getName() != selectedCountry){
-                iterator.remove();    // You can do the modification here.
-            }
-        }
-        ArrayAdapter<City> adapter = new ArrayAdapter<City>(this, R.layout.item_city, R.id.textViewCityName,filteredCities);
-        listOfCities.setAdapter(adapter);
-    }
 
     public void onNothingSelected(AdapterView<?> arg0) {
         // TODO Auto-generated method stub
