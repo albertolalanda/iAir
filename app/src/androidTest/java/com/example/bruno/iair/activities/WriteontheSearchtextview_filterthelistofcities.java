@@ -31,15 +31,14 @@ import static org.hamcrest.Matchers.allOf;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class listfilterTest {
+public class WriteontheSearchtextview_filterthelistofcities {
 
     @Rule
     public ActivityTestRule<DashBoardActivity> mActivityTestRule = new ActivityTestRule<>(DashBoardActivity.class);
 
     @Test
     public void listfilterTest() {
-        ViewInteraction actionMenuItemView = onView(
-                allOf(withId(R.id.btnSearch), withContentDescription("Search"),
+        ViewInteraction actionMenuItemView = onView(allOf(withId(R.id.btnSearch), withContentDescription("Search"),
                         childAtPosition(
                                 childAtPosition(
                                         withId(R.id.main_toolbar),
@@ -69,6 +68,7 @@ public class listfilterTest {
                                 0),
                         isDisplayed()));
         textView.check(matches(withText("Leiria")));
+
 
     }
 

@@ -5,9 +5,11 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.text.Layout;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,15 +18,21 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.bruno.iair.R;
 import com.example.bruno.iair.models.City;
 import com.example.bruno.iair.models.Country;
 
+import java.lang.reflect.Field;
 import java.util.LinkedList;
+
+import static android.view.View.GONE;
+import static java.lang.Boolean.FALSE;
 
 public class DashBoardActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
 
@@ -60,6 +68,8 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         setSupportActionBar(myToolbar);
 
 
+
+
         cities = new LinkedList<City>();
         countries = new LinkedList<Country>();
         cityName = findViewById(R.id.textViewCityName);
@@ -76,7 +86,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         checkFavorite = findViewById(R.id.checkBoxFavorite);
         layoutInfo = findViewById(R.id.layoutInfoo);
         listViewOfCities = findViewById(R.id.cityList);
-        adapter = new ArrayAdapter<City>(this, R.layout.item_city, R.id.textViewCityName, cities);
+        adapter = new ArrayAdapter<City>(this, android.R.layout.simple_list_item_1, cities);
         listViewOfCities.setAdapter(adapter);
         listViewOfCities.setTextFilterEnabled(true);
 
@@ -121,7 +131,11 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
             }
         });
 
+
+
     }
+
+
 
 
 
@@ -132,6 +146,15 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         searchView.setOnQueryTextListener((SearchView.OnQueryTextListener) this);
         searchView.setSubmitButtonEnabled(true);
         searchView.setQueryHint("Search Here");
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                Toast.makeText(DashBoardActivity.this, "tosta", Toast.LENGTH_SHORT).show();
+                listViewOfCities.setVisibility(GONE);
+                layoutInfo.setVisibility(View.VISIBLE);
+                return true;
+            }
+        });
     }
 
 
@@ -172,16 +195,38 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.main_menu, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.btnSearch);
+        MenuItem btnBack = menu.findItem(R.id.btnBack);
+        btnBack.setVisible(FALSE);
         searchView = (SearchView) menu.findItem(R.id.btnSearch).getActionView();
-
-        MenuItem item = menu.findItem(R.id.btnBack);
-
         setupSearchView();
 
-        item.setVisible(false);
+        searchView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View view) {
+                listViewOfCities.setVisibility(View.VISIBLE);
+                layoutInfo.setVisibility(View.GONE);
+
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View view) {
+                listViewOfCities.setVisibility(GONE);
+                layoutInfo.setVisibility(View.VISIBLE);
+
+            }
+        });
+
+
+
+
+
+
+
+
         return true;
     }
-
 
 
     @Override
@@ -193,13 +238,19 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
                 startActivity(appInfo);
                 break;
             case R.id.btnSearch:
-                layoutInfo.setVisibility(View.GONE);
+                layoutInfo.setVisibility(GONE);
                 listViewOfCities.setVisibility(View.VISIBLE);
+                break;
+            case R.id.btnBack:
+                Toast.makeText(this, "BACK", Toast.LENGTH_SHORT).show();
+                listViewOfCities.setVisibility(GONE);
+                layoutInfo.setVisibility(View.VISIBLE);
+
                 break;
 
             default:
                 layoutInfo.setVisibility(View.VISIBLE);
-                listViewOfCities.setVisibility(View.GONE);
+                listViewOfCities.setVisibility(GONE);
         }
 
         return true;
