@@ -30,7 +30,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
 
     public static LinkedList<City> cities;
     public static LinkedList<Country> countries;
-
+    private static final int REQUEST_FAV = 1;
 
 
     private City favoriteCity;
@@ -190,7 +190,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         switch (item.getItemId()){
             case R.id.btnCity:
                 Intent appInfo = new Intent(DashBoardActivity.this, CityListActivity.class);
-                startActivity(appInfo);
+                startActivityForResult(appInfo,REQUEST_FAV);
                 break;
             case R.id.btnSearch:
                 layoutInfo.setVisibility(View.GONE);
@@ -242,5 +242,28 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         return true;
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
+        if (resultCode==RESULT_OK && requestCode==REQUEST_FAV) {
+            atualizarLista();
+        }
+    }
+
+    private void atualizarLista() {
+        favoriteCity = City.getFavoriteCity(cities);
+
+        cityName.setText(favoriteCity.getName());
+        cityTemperature.setText("Temperature: ");
+        cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
+        cityHumidity.setText("Humidity: ");
+        cityHumidityData.setText(favoriteCity.getHumidity() + " %");
+        cityOzone.setText("Ozone: ");
+        cityOzoneData.setText(favoriteCity.getOzoneO3() + " ppm");
+        cityCarbonMonoxide.setText("Carbon Monoxide: ");
+        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + " ppm");
+        cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
+        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
+    }
 }
