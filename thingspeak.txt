@@ -1,0 +1,8 @@
+mail: 2151237@my.ipleiria.pt
+user: IPLeiria2151237
+pass: IPLeiria2151237
+
+read api key:  ZJAGHCE3DO174L1Z
+write api key: YCR5SX0LVVATWMUY
+
+channel id: 365072
