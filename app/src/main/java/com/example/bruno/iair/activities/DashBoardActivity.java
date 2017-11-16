@@ -35,15 +35,6 @@ import com.example.bruno.iair.models.City;
 import com.example.bruno.iair.models.Country;
 import com.example.bruno.iair.services.GPSTracker;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.lang.reflect.Field;
 import java.util.LinkedList;
 
 import static android.view.View.GONE;
