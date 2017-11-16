@@ -5,6 +5,7 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
@@ -24,6 +25,14 @@ import com.example.bruno.iair.R;
 import com.example.bruno.iair.models.City;
 import com.example.bruno.iair.models.Country;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.LinkedList;
 
 public class DashBoardActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
@@ -50,15 +59,21 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
     private ListView listViewOfCities;
     private SearchView searchView;
     private ArrayAdapter<City> adapter;
+    private String urlString;
 
     @SuppressLint("ResourceAsColor")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dash_board);
+        if (android.os.Build.VERSION.SDK_INT > 9) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
         Toolbar myToolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(myToolbar);
 
+        urlString = "https://api.thingspeak.com/channels/365072/feeds.json?api_key=ZJAGHCE3DO174L1Z&results=2";
 
         cities = new LinkedList<City>();
         countries = new LinkedList<Country>();
@@ -86,6 +101,8 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         cities.get(1).setFavorite(true);
 
         favoriteCity = City.getFavoriteCity(cities);
+
+        favoriteCity.updateData(urlString);
 
         cityName.setText(favoriteCity.getName());
         cityTemperature.setText("Temperature: ");
@@ -120,6 +137,8 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
                 startActivity(appInfo);
             }
         });
+
+
 
     }
 
@@ -241,6 +260,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         }
         return true;
     }
+
 
 
 }
