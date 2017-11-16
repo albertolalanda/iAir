@@ -184,4 +184,38 @@ public class City {
             e.printStackTrace();
         }
     }
+
+    public String getAQI(){
+        double averagePPM=(double)((this.getOzoneO3() + this.getNitrogenDioxideNO2() + this.getCarbonMonoxideCO()) /3);
+        if(averagePPM<=54)
+            return "Good";
+        if(averagePPM<=154)
+            return "Moderate";
+        if(averagePPM<=254)
+            return "Unhealthy for Sensitive Groups";
+        if(averagePPM<=354)
+            return "Unhealthy";
+        if(averagePPM<=424)
+            return "Very Unhealthy";
+        if(averagePPM<=604||averagePPM>604)
+            return "Hazardous";
+        return "Error";
+    }
+
+    public String getColorAQI(){
+        double averagePPM=(double)((this.getOzoneO3() + this.getNitrogenDioxideNO2() + this.getCarbonMonoxideCO()) /3);
+        if(averagePPM<=54)
+            return "#4dff4d";
+        if(averagePPM<=154)
+            return "#ffff33";
+        if(averagePPM<=254)
+            return "#ffaf1a";
+        if(averagePPM<=354)
+            return "#ff1a1a";
+        if(averagePPM<=424)
+            return "#e600e6";
+        if(averagePPM<=604||averagePPM>604)
+            return "#cc0000";
+        return "#FFFFFF";
+    }
 }

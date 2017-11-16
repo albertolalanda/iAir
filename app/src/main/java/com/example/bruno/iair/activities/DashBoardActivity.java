@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.view.MenuItemCompat;
@@ -52,6 +53,8 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
 
     private City favoriteCity;
     private TextView cityName;
+    private LinearLayout linearLayoutAQI;
+    private TextView cityAQI;
     private TextView cityTemperature;
     private TextView cityTemperatureData;
     private TextView cityHumidity;
@@ -88,6 +91,8 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         cities = new LinkedList<City>();
         countries = new LinkedList<Country>();
         cityName = findViewById(R.id.textViewCityName);
+        cityAQI = findViewById(R.id.textViewAQI);
+        linearLayoutAQI = findViewById(R.id.linearLayoutAQI);
         cityTemperature = findViewById(R.id.textViewCityTemperature);
         cityTemperatureData = findViewById(R.id.textViewTemperatureData);
         cityHumidity = findViewById(R.id.textViewCityHumidity);
@@ -115,6 +120,8 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         favoriteCity.updateData(urlString);
 
         cityName.setText(favoriteCity.getName());
+        linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
+        cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
         cityTemperature.setText("Temperature: ");
         cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
         cityHumidity.setText("Humidity: ");
