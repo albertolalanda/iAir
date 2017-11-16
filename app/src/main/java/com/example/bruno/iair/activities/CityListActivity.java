@@ -350,6 +350,7 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.btnBack:
+                setResult(RESULT_OK);
                 this.finish();
                 break;
             default:
