@@ -401,7 +401,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
 
     private void atualizarLista() {
         favoriteCity = City.getFavoriteCity(cities);
-
+        favoriteCity.updateData(urlString);
         cityName.setText(favoriteCity.getName());
         cityTemperature.setText("Temperature: ");
         cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
