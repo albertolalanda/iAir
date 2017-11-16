@@ -125,7 +125,7 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
                 Intent appInfo = new Intent(CityListActivity.this, CityActivity.class);
                 String data = listOfCities.getAdapter().getItem(position).toString();
                 appInfo.putExtra("city", data);
-                startActivity(appInfo);
+                startActivityForResult(appInfo,REQUEST_FAV);
             }
         });
 
@@ -136,7 +136,7 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
                     City city = CityListActivity.this.currentLocation();
                     Intent appInfo = new Intent(CityListActivity.this, CityActivity.class);
                     appInfo.putExtra("city", city.getName());
-                    startActivity(appInfo);
+                    startActivityForResult(appInfo,REQUEST_FAV);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
