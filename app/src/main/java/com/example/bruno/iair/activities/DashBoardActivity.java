@@ -113,6 +113,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         cities.get(1).setFavorite(true);
 
         favoriteCity = City.getFavoriteCity(cities);
+
         if(favoriteCity.getName().equals("GPS")){
             favoriteCity=currentLocation();
         }
@@ -151,7 +152,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
                 Intent appInfo = new Intent(DashBoardActivity.this, CityActivity.class);
                 String data = listViewOfCities.getAdapter().getItem(position).toString();
                 appInfo.putExtra("city", data);
-                startActivity(appInfo);
+                startActivityForResult(appInfo,REQUEST_FAV);
             }
         });
 
@@ -239,13 +240,6 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
             }
         });
 
-
-
-
-
-
-
-
         return true;
     }
 
@@ -285,7 +279,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
             }
         }
         for (City c:cities){
-            if(c.getName()==city){
+            if(c.getName().equals(city)){
                 c.setFavorite(true);
             }
         }
@@ -334,10 +328,12 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
                 double lat = gps.getLatitude();
 
                 for(City city:cities){
-                    kmAux = getDistanceFromLatLonInKm(lat, lon, city.getLatitude(), city.getLongitude());
-                    if (kmNearest > kmAux || kmNearest == 0){
-                        kmNearest = kmAux;
-                        nearestCity = city;
+                    if(!city.getName().equals("GPS")){
+                        kmAux = getDistanceFromLatLonInKm(lat, lon, city.getLatitude(), city.getLongitude());
+                        if (kmNearest > kmAux || kmNearest == 0){
+                            kmNearest = kmAux;
+                            nearestCity = city;
+                        }
                     }
                 }
             }

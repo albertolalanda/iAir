@@ -80,11 +80,9 @@ public class CityActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.btnBack:
+                setResult(RESULT_OK);
                 this.finish();
                 break;
-            case R.id.btnCity:
-                Intent appInfo = new Intent(CityActivity.this, CityListActivity.class);
-                startActivity(appInfo);
             default:
         }
 
