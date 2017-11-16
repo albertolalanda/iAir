@@ -1,5 +1,13 @@
 package com.example.bruno.iair.models;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.LinkedList;
 
 /**
@@ -133,5 +141,47 @@ public class City {
 
     public void setNitrogenDioxideNO2(double nitrogenDioxideNO2) {
         this.nitrogenDioxideNO2 = nitrogenDioxideNO2;
+    }
+
+    public static JSONObject getJSONObjectFromURL(String urlString, String cityName) throws IOException, JSONException {
+        HttpURLConnection urlConnection = null;
+        URL url = new URL(urlString);
+        urlConnection = (HttpURLConnection) url.openConnection();
+        urlConnection.setRequestMethod("GET");
+        urlConnection.setReadTimeout(10000 /* milliseconds */ );
+        urlConnection.setConnectTimeout(15000 /* milliseconds */ );
+        urlConnection.setDoOutput(true);
+        urlConnection.connect();
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
+        StringBuilder sb = new StringBuilder();
+
+        String line;
+        while ((line = br.readLine()) != null) {
+            sb.append(line + "\n");
+        }
+        br.close();
+
+        String jsonString = sb.toString();
+        System.out.println("JSON: " + jsonString);
+
+        return new JSONObject(jsonString);
+    }
+
+    public void updateData(String urlString){
+        try{
+            JSONObject jsonObject = this.getJSONObjectFromURL(urlString, this.name);
+            System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field1"));
+
+            this.setOzoneO3(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field1")));
+            this.setNitrogenDioxideNO2(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field2")));
+            this.setCarbonMonoxideCO(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field3")));
+            this.setTemperature(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field4")));
+            this.setHumidity(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field5")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }

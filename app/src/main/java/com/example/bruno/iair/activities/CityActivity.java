@@ -13,6 +13,8 @@ import android.widget.TextView;
 
 import com.example.bruno.iair.R;
 
+import static java.lang.Boolean.FALSE;
+
 public class CityActivity extends AppCompatActivity {
 
 
@@ -54,6 +56,8 @@ public class CityActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.main_menu, menu);
+        MenuItem btnSearch = menu.findItem(R.id.btnSearch);
+        btnSearch.setVisible(FALSE);
         return true;
     }
     @Override
