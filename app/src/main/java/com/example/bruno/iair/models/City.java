@@ -1,5 +1,11 @@
 package com.example.bruno.iair.models;
 
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Environment;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -9,6 +15,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.LinkedList;
+
+import com.example.bruno.iair.services.HumiditySensor;
 
 /**
  * Created by bruno on 04/11/2017.
@@ -26,6 +34,9 @@ public class City {
     private double ozoneO3;
     private double carbonMonoxideCO;
     private double nitrogenDioxideNO2;
+    private SensorManager mSensorManager;
+    private Sensor mHumiditySensor;
+    private Sensor mTemperatureSensor;
 
 
 
@@ -178,12 +189,31 @@ public class City {
             this.setCarbonMonoxideCO(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field3")));
             this.setTemperature(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field4")));
             this.setHumidity(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field5")));
+
+
         } catch (IOException e) {
             e.printStackTrace();
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
+
+    /*public void updateDataFromSensors(){
+        try{
+            int TYPE_RELATIVE_HUMIDITY;
+
+            this.setOzoneO3(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field1")));
+            this.setNitrogenDioxideNO2(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field2")));
+            this.setCarbonMonoxideCO(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field3")));
+            this.setTemperature(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field4")));
+            this.setHumidity(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field5")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }*/
+
 
     public String getAQI(){
         double averagePPM=(double)((this.getOzoneO3() + this.getNitrogenDioxideNO2() + this.getCarbonMonoxideCO()) /3);

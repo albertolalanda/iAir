@@ -257,10 +257,12 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
                 double lat = gps.getLatitude();
 
                 for(City city:cities){
-                    kmAux = getDistanceFromLatLonInKm(lat, lon, city.getLatitude(), city.getLongitude());
-                    if (kmNearest > kmAux || kmNearest == 0){
-                        kmNearest = kmAux;
-                        nearestCity = city;
+                    if(!city.getName().equals("GPS")){
+                        kmAux = getDistanceFromLatLonInKm(lat, lon, city.getLatitude(), city.getLongitude());
+                        if (kmNearest > kmAux || kmNearest == 0){
+                            kmNearest = kmAux;
+                            nearestCity = city;
+                        }
                     }
                 }
             }
