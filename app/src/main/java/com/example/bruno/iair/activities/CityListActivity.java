@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.Boolean.FALSE;
+
 public class CityListActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     private ListView listOfCities;
     private ArrayAdapter<City> cAdapter;
@@ -305,6 +307,8 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.main_menu, menu);
+        MenuItem btnSearch = menu.findItem(R.id.btnSearch);
+        btnSearch.setVisible(FALSE);
         MenuItem item = menu.findItem(R.id.btnCity);
         item.setVisible(false);
         return true;
