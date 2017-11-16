@@ -9,9 +9,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.bruno.iair.R;
+import com.example.bruno.iair.models.City;
+
+import java.util.LinkedList;
 
 import static java.lang.Boolean.FALSE;
 
@@ -20,17 +24,29 @@ public class CityActivity extends AppCompatActivity {
 
     private TextView txtCity;
     private CheckBox chkFavorite;
+    private City thisCity;
+    private LinkedList<City> cities;
+    private String urlString;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_city);
 
+        cities = new LinkedList<City>();
+        cities = DashBoardActivity.getCities();
+
+        urlString = "https://api.thingspeak.com/channels/365072/feeds.json?api_key=ZJAGHCE3DO174L1Z&results=2";
+
+
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
         Intent intent = getIntent();
         final String city = intent.getStringExtra("city");
+        thisCity = findThisCity(city);
+
+        thisCity.updateData(urlString);
 
         txtCity = findViewById(R.id.txtCityName);
         chkFavorite = findViewById(R.id.chkFavorite);
@@ -73,6 +89,15 @@ public class CityActivity extends AppCompatActivity {
         }
 
         return true;
+    }
+
+    public City findThisCity(String name) {
+        for(City c : cities){
+            if(c.getName().equals(name)){
+                return c;
+            }
+        }
+        return null;
     }
 
 }
