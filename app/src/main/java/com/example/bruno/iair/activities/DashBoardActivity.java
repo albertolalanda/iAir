@@ -3,12 +3,17 @@ package com.example.bruno.iair.activities;
 import android.annotation.SuppressLint;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,10 +24,12 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.bruno.iair.R;
 import com.example.bruno.iair.models.City;
 import com.example.bruno.iair.models.Country;
+import com.example.bruno.iair.services.GPSTracker;
 
 import java.util.LinkedList;
 
@@ -86,6 +93,9 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         cities.get(1).setFavorite(true);
 
         favoriteCity = City.getFavoriteCity(cities);
+        if(favoriteCity.getName().equals("GPS")){
+            favoriteCity=currentLocation();
+        }
 
         cityName.setText(favoriteCity.getName());
         cityTemperature.setText("Temperature: ");
@@ -165,6 +175,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         cities.add(new City("Leiria", findCountryWithID("PT"), 39.7495331, -8.807683, 30.0, 18.43, 60.55, 60.55, 60.55));
         cities.add(new City("Porto", findCountryWithID("PT"), 41.1579438, -8.6291053, 30.0, 18.43, 60.55, 60.55, 60.55));
         cities.add(new City("Barcelona", findCountryWithID("ES"), 30.22, -8.23, 30.0, 18.43, 60.55, 60.55, 60.55));
+        cities.add(new City("GPS", new Country("GPS", "GPS"), 30.22, -8.23, 30.0, 18.43, 60.55, 60.55, 60.55));
     };
 
 
@@ -242,5 +253,86 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         return true;
     }
 
+    private City currentLocation(){
+        GPSTracker gps = new GPSTracker(this);
 
+        City nearestCity = null;
+        double kmAux = 0;
+        double kmNearest = 0;
+        // check if GPS location can get Location
+        if (gps.canGetLocation()) {
+
+            LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                Log.d("Your Location", "latitude:" + gps.getLatitude()
+                        + ", longitude: " + gps.getLongitude());
+
+                double lon = gps.getLongitude();
+                double lat = gps.getLatitude();
+
+                for(City city:cities){
+                    kmAux = getDistanceFromLatLonInKm(lat, lon, city.getLatitude(), city.getLongitude());
+                    if (kmNearest > kmAux || kmNearest == 0){
+                        kmNearest = kmAux;
+                        nearestCity = city;
+                    }
+                }
+            }
+        }else{
+            showAlert();
+        }
+
+        //Toast.makeText(DashBoardActivity.this, "Nearest City is " + nearestCity.getName() + " " +roundOff(kmNearest) +"km away...", Toast.LENGTH_LONG).show();
+
+
+
+
+        return nearestCity;
+
+    }
+    public double getDistanceFromLatLonInKm(double lat1, double lon1, double lat2, double lon2)
+    {
+        double R = 6371; // Radius of the earth in km
+        double dLat = deg2rad(lat2-lat1);  // deg2rad below
+        double dLon = deg2rad(lon2-lon1);
+        double a =
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                                Math.sin(dLon/2) * Math.sin(dLon/2)
+                ;
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double d = R * c; // Distance in km
+        return d;
+    }
+
+
+
+    public double deg2rad(double deg) {
+        return (deg * (Math.PI/180));
+    }
+
+    public double roundOff(double input){
+        return (double) Math.round(input * 100) / 100;
+    }
+
+    private void showAlert() {
+        final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle("Enable Location")
+                .setMessage("Your Locations Settings is set to 'Off'.\nPlease Enable Location to " +
+                        "use this app")
+                .setPositiveButton("Location Settings", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                        Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivity(myIntent);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                    }
+                });
+        dialog.show();
+    }
 }

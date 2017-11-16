@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.Spinner;
@@ -39,6 +40,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class CityListActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+
+    private static final int REQUEST_FAV = 1;
     private ListView listOfCities;
     private ArrayAdapter<City> cAdapter;
     public int selectedPosition;
@@ -46,6 +49,7 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
     public LinkedList<City> filteredCities;
     public LinkedList<Country> countries;
     public String selectedCountry;
+    private CheckBox gpsBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,7 +139,28 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
                     e.printStackTrace();
                 }
             }
-        });}
+        });
+
+        gpsBtn = findViewById(R.id.checkBoxFavGps);
+
+        if(DashBoardActivity.isCityFavorite("GPS")){
+            gpsBtn.setChecked(true);
+            gpsBtn.setEnabled(false);
+        }
+
+        gpsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(gpsBtn.isChecked()){
+                    DashBoardActivity.updateFavorite("GPS");
+                    atualizarLista();
+                    gpsBtn.setEnabled(false);
+                }
+            }
+        });
+
+
+    }
 
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         // On selecting a spinner item
@@ -190,9 +215,16 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
                 r.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        System.out.println("WTF HERE1!");
                         selectedPosition = (Integer)view.getTag();
                         notifyDataSetChanged();
                         DashBoardActivity.updateFavorite(filteredCities.get(selectedPosition).toString());
+                        gpsBtn = findViewById(R.id.checkBoxFavGps);
+                        System.out.println("WTF HERE2!");
+                        if (!gpsBtn.isEnabled()){
+                            gpsBtn.setChecked(false);
+                            gpsBtn.setEnabled(true);
+                        }
                     }
                 });
                 return v;
@@ -322,6 +354,74 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
         return true;
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        System.out.println("Activity result");
+        if (resultCode==RESULT_OK && requestCode==REQUEST_FAV) {
+            System.out.println("OK");
+            atualizarLista();
+        }
+    }
 
+    private void atualizarLista() {
+        System.out.println("atualizar metudo");
+        Iterator<City> iterator = filteredCities.iterator();
+
+        while (iterator.hasNext()){
+            City cc = iterator.next();
+            if (cc.getCountry().getName() != selectedCountry){
+                iterator.remove();    // You can do the modification here.
+            }
+        }
+        System.out.println(filteredCities);
+        int i=0;
+        for(City city:filteredCities){
+            if(city.isFavorite()){
+                i++;
+                selectedPosition=filteredCities.indexOf(city);
+            }
+        }
+
+        if(i==0){
+            selectedPosition=-1;
+        }
+
+        cAdapter = new ArrayAdapter<City>(this, R.layout.item_city, R.id.textViewCityName, filteredCities) {
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View v = convertView;
+                if (v == null) {
+                    LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    v = vi.inflate(R.layout.item_city, null);
+                    RadioButton r = v.findViewById(R.id.radioFavorite);
+                }
+                TextView tv = v.findViewById(R.id.textViewCityName);
+                tv.setText(filteredCities.get(position).toString());
+                RadioButton r = v.findViewById(R.id.radioFavorite);
+                r.setChecked(position == selectedPosition);
+                r.setTag(position);
+
+                r.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        selectedPosition = (Integer)view.getTag();
+                        notifyDataSetChanged();
+                        DashBoardActivity.updateFavorite(filteredCities.get(selectedPosition).toString());
+                        gpsBtn = findViewById(R.id.checkBoxFavGps);
+                        System.out.println("WTF HERE2!");
+                        if (!gpsBtn.isEnabled()){
+                            gpsBtn.setChecked(false);
+                            gpsBtn.setEnabled(true);
+                        }
+                    }
+                });
+                return v;
+            }
+
+        };
+        listOfCities.setAdapter(cAdapter);
+    }
 
 }
