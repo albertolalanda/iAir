@@ -47,7 +47,6 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
     public static LinkedList<Country> countries;
     private static final int REQUEST_FAV = 1;
 
-
     private City favoriteCity;
     private TextView cityName;
     private LinearLayout linearLayoutAQI;
@@ -110,32 +109,36 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
 
         populateCountries();
         populateCities();
-        cities.get(1).setFavorite(true);
+        //cities.get(1).setFavorite(true);
 
         favoriteCity = City.getFavoriteCity(cities);
+        if(favoriteCity!=null){
+            if(favoriteCity.getName().equals("GPS")){
+                favoriteCity=currentLocation();
+            }
 
-        if(favoriteCity.getName().equals("GPS")){
-            favoriteCity=currentLocation();
-        }
+            favoriteCity.updateData(urlString);
 
-        favoriteCity.updateData(urlString);
+            cityName.setText(favoriteCity.getName());
+            linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
+            cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
+            cityTemperature.setText("Temperature: ");
+            cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
+            cityHumidity.setText("Humidity: ");
+            cityHumidityData.setText(favoriteCity.getHumidity() + " %");
+            cityOzone.setText("Ozone: ");
+            cityOzoneData.setText(favoriteCity.getOzoneO3() + " ppm");
+            cityCarbonMonoxide.setText("Carbon Monoxide: ");
+            cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + " ppm");
+            cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
+            cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
 
-        cityName.setText(favoriteCity.getName());
-        linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
-        cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
-        cityTemperature.setText("Temperature: ");
-        cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
-        cityHumidity.setText("Humidity: ");
-        cityHumidityData.setText(favoriteCity.getHumidity() + " %");
-        cityOzone.setText("Ozone: ");
-        cityOzoneData.setText(favoriteCity.getOzoneO3() + " ppm");
-        cityCarbonMonoxide.setText("Carbon Monoxide: ");
-        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + " ppm");
-        cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
-        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
-
-        if (favoriteCity.isFavorite()) {
-            checkFavorite.setChecked(true);
+            if (favoriteCity.isFavorite()) {
+                checkFavorite.setChecked(true);
+            }
+        }else{
+            Intent appInfo = new Intent(DashBoardActivity.this, SelectFavoriteCityActivity.class);
+            startActivityForResult(appInfo,REQUEST_FAV);
         }
 
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
@@ -399,6 +402,8 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode==RESULT_OK && requestCode==REQUEST_FAV) {
             atualizarLista();
+        }else{
+            finish();
         }
     }
 
@@ -407,6 +412,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         if(favoriteCity.getName().equals("GPS")){
             favoriteCity=currentLocation();
         }
+        System.out.println(favoriteCity);
         favoriteCity.updateData(urlString);
         cityName.setText(favoriteCity.getName());
         cityTemperature.setText("Temperature: ");

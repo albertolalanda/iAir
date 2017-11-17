@@ -85,35 +85,6 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
         spinner.setOnItemSelectedListener(this);
 
         listOfCities = findViewById(R.id.cityList);
-        /*cAdapter = new ArrayAdapter<City>(this, R.layout.item_city, R.id.textViewCityName, filteredCities) {
-
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                View v = convertView;
-                if (v == null) {
-                    LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                    v = vi.inflate(R.layout.item_city, null);
-                    RadioButton r = v.findViewById(R.id.radioFavorite);
-                }
-                TextView tv = v.findViewById(R.id.textViewCityName);
-                tv.setText(cities.get(position).toString());
-                RadioButton r = v.findViewById(R.id.radioFavorite);
-                r.setChecked(position == selectedPosition);
-                r.setTag(position);
-
-                r.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        selectedPosition = (Integer)view.getTag();
-                        notifyDataSetChanged();
-                        DashBoardActivity.updateFavorite(filteredCities.get(selectedPosition).toString());
-                    }
-                });
-                return v;
-            }
-
-        };
-        listOfCities.setAdapter(cAdapter);*/
 
         listOfCities.setTextFilterEnabled(true);
 
