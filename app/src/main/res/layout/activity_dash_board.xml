@@ -237,13 +237,5 @@
     </LinearLayout>
 
 
-    <ListView
-        android:id="@+id/cityList"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone"
-        tools:layout_editor_absoluteX="8dp"
-        tools:layout_editor_absoluteY="48dp"
-        tools:listitem="@layout/item_city" />
 </LinearLayout>
 </android.support.v4.widget.SwipeRefreshLayout>

@@ -17,7 +17,17 @@
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme" />
 
+    <ListView
+        android:id="@+id/cityList2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="48dp"
+        tools:listitem="@layout/item_city" />
+
     <LinearLayout
+        android:id="@+id/cityCountryListLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
@@ -38,40 +48,30 @@
             tools:listitem="@layout/item_city" />
 
     </LinearLayout>
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <RelativeLayout
-            android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom|left|center_horizontal"
+        android:gravity="bottom"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnCurrentLocation"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true">
+            android:layout_alignTop="@+id/checkBoxFavGps"
+            android:layout_weight="1"
+            android:drawableLeft="@drawable/ic_gps_locked"
+            android:text="Current Location" />
 
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/btnCurrentLocation"
-                    style="@style/Widget.AppCompat.Button.Borderless.Colored"
-                    android:layout_width="320dp"
-                    android:layout_height="wrap_content"
-                    android:layout_alignTop="@+id/checkBoxFavGps"
-                    android:layout_weight="1"
-                    android:drawableLeft="@drawable/ic_gps_locked"
-                    android:text="Current Location" />
-
-                <CheckBox
-                    android:id="@+id/checkBoxFavGps"
-                    style="@android:style/Widget.CompoundButton.Star"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-            </LinearLayout>
-
-        </RelativeLayout>
-    </RelativeLayout>
+        <CheckBox
+            android:id="@+id/checkBoxFavGps"
+            style="@android:style/Widget.CompoundButton.Star"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+    </LinearLayout>
 
 
 </LinearLayout>
