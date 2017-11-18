@@ -182,8 +182,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
             @Override public void run() {
                 swipeRefresh.setRefreshing(false);
             }
-        }, 2000);
-
+        }, 1500);
     }
 
 
