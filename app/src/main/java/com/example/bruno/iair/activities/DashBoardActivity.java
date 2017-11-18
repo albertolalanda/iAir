@@ -8,9 +8,11 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.StrictMode;
 import android.support.v4.view.MenuItemCompat;
 import android.provider.Settings;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
@@ -41,7 +43,7 @@ import java.util.LinkedList;
 import static android.view.View.GONE;
 import static java.lang.Boolean.FALSE;
 
-public class DashBoardActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
+public class DashBoardActivity extends AppCompatActivity implements SearchView.OnQueryTextListener, SwipeRefreshLayout.OnRefreshListener {
 
     public static LinkedList<City> cities;
     public static LinkedList<Country> countries;
@@ -67,6 +69,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
     private SearchView searchView;
     private ArrayAdapter<City> adapter;
     private String urlString;
+    private SwipeRefreshLayout swipeRefresh;
 
     @SuppressLint("ResourceAsColor")
     @Override
@@ -81,6 +84,14 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         setSupportActionBar(myToolbar);
 
         urlString = "https://api.thingspeak.com/channels/365072/feeds.json?api_key=ZJAGHCE3DO174L1Z&results=2";
+
+
+
+        swipeRefresh = findViewById(R.id.swiperefresh);
+        swipeRefresh.setOnRefreshListener(this);
+        swipeRefresh.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.CYAN);
+
+
 
 
 
@@ -159,10 +170,21 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
             }
         });
 
+
+
     }
 
+    @Override
+    public void onRefresh() {
+        Toast.makeText(this, "oi", Toast.LENGTH_SHORT).show();
+        atualizarLista();
+        new Handler().postDelayed(new Runnable() {
+            @Override public void run() {
+                swipeRefresh.setRefreshing(false);
+            }
+        }, 2000);
 
-
+    }
 
 
     private void setupSearchView() {
@@ -426,4 +448,10 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
         cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
     }
+
+
+
+
+
+
 }
