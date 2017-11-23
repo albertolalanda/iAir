@@ -342,7 +342,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode==RESULT_OK && requestCode==REQUEST_FAV) {
             atualizarLista();
-        }else{
+        }else if(resultCode==RESULT_CANCELED){
             finish();
         }
     }
