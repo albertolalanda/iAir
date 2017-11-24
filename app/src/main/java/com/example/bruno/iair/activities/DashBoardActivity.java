@@ -8,9 +8,11 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.StrictMode;
 import android.support.v4.view.MenuItemCompat;
 import android.provider.Settings;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
@@ -36,17 +38,17 @@ import com.example.bruno.iair.models.City;
 import com.example.bruno.iair.models.Country;
 import com.example.bruno.iair.services.GPSTracker;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import static android.view.View.GONE;
 import static java.lang.Boolean.FALSE;
 
-public class DashBoardActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
+public class DashBoardActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     public static LinkedList<City> cities;
     public static LinkedList<Country> countries;
     private static final int REQUEST_FAV = 1;
-
 
     private City favoriteCity;
     private TextView cityName;
@@ -63,11 +65,8 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
     private TextView cityNitrogenDioxide;
     private TextView cityNitrogenDioxideData;
     private CheckBox checkFavorite;
-    private LinearLayout layoutInfo;
-    private ListView listViewOfCities;
-    private SearchView searchView;
-    private ArrayAdapter<City> adapter;
     private String urlString;
+    private SwipeRefreshLayout swipeRefresh;
 
     @SuppressLint("ResourceAsColor")
     @Override
@@ -82,6 +81,14 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         setSupportActionBar(myToolbar);
 
         urlString = "https://api.thingspeak.com/channels/365072/feeds.json?api_key=ZJAGHCE3DO174L1Z&results=2";
+
+
+
+        swipeRefresh = findViewById(R.id.swiperefresh);
+        swipeRefresh.setOnRefreshListener(this);
+        swipeRefresh.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.CYAN);
+
+
 
 
 
@@ -101,86 +108,64 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         cityNitrogenDioxide = findViewById(R.id.textViewNitrogenDioxide);
         cityNitrogenDioxideData = findViewById(R.id.textViewNitrogenMonoxideData);
         checkFavorite = findViewById(R.id.checkBoxFavorite);
-        layoutInfo = findViewById(R.id.layoutInfoo);
-        listViewOfCities = findViewById(R.id.cityList);
-        adapter = new ArrayAdapter<City>(this, android.R.layout.simple_list_item_1, cities);
-        listViewOfCities.setAdapter(adapter);
-        listViewOfCities.setTextFilterEnabled(true);
-
 
         populateCountries();
         populateCities();
-        cities.get(1).setFavorite(true);
+        //cities.get(1).setFavorite(true);
 
         favoriteCity = City.getFavoriteCity(cities);
-
-        if(favoriteCity.getName().equals("GPS")){
-            favoriteCity=currentLocation();
-        }
-
-        favoriteCity.updateData(urlString);
-
-        cityName.setText(favoriteCity.getName());
-        linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
-        cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
-        cityTemperature.setText("Temperature: ");
-        cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
-        cityHumidity.setText("Humidity: ");
-        cityHumidityData.setText(favoriteCity.getHumidity() + " %");
-        cityOzone.setText("Ozone: ");
-        cityOzoneData.setText(favoriteCity.getOzoneO3() + " ppm");
-        cityCarbonMonoxide.setText("Carbon Monoxide: ");
-        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + " ppm");
-        cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
-        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
-
-        if (favoriteCity.isFavorite()) {
-            checkFavorite.setChecked(true);
-        }
-
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-
-        if (null != searchView) {
-
-            searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-            searchView.setIconifiedByDefault(false);
-        }
-
-        listViewOfCities.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Intent appInfo = new Intent(DashBoardActivity.this, CityActivity.class);
-                String data = listViewOfCities.getAdapter().getItem(position).toString();
-                appInfo.putExtra("city", data);
-                startActivityForResult(appInfo,REQUEST_FAV);
+        if(favoriteCity!=null){
+            if(favoriteCity.getName().equals("GPS")){
+                favoriteCity=currentLocation();
             }
-        });
 
+            favoriteCity.updateData(urlString);
+
+            cityName.setText(favoriteCity.getName());
+            linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
+            cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
+            cityTemperature.setText("Temperature: ");
+            cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
+            cityHumidity.setText("Humidity: ");
+            cityHumidityData.setText(favoriteCity.getHumidity() + " %");
+            cityOzone.setText("Ozone: ");
+            cityOzoneData.setText(favoriteCity.getOzoneO3() + " ppm");
+            cityCarbonMonoxide.setText("Carbon Monoxide: ");
+            cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + " ppm");
+            cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
+            cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
+
+            if (favoriteCity.isFavorite()) {
+                checkFavorite.setChecked(true);
+            }
+        }else{
+            Intent appInfo = new Intent(DashBoardActivity.this, SelectFavoriteCityActivity.class);
+            startActivityForResult(appInfo,REQUEST_FAV);
+        }
     }
 
-
-
-
-
-    private void setupSearchView() {
-        searchView.setIconifiedByDefault(false);
-        searchView.setOnQueryTextListener((SearchView.OnQueryTextListener) this);
-        searchView.setSubmitButtonEnabled(true);
-        searchView.setQueryHint("Search Here");
-        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
-            @Override
-            public boolean onClose() {
-                Toast.makeText(DashBoardActivity.this, "tosta", Toast.LENGTH_SHORT).show();
-                listViewOfCities.setVisibility(GONE);
-                layoutInfo.setVisibility(View.VISIBLE);
-                return true;
+    @Override
+    public void onRefresh() {
+        Toast.makeText(this, "oi", Toast.LENGTH_SHORT).show();
+        atualizarLista();
+        new Handler().postDelayed(new Runnable() {
+            @Override public void run() {
+                swipeRefresh.setRefreshing(false);
             }
-        });
+        }, 1500);
     }
-
 
     public static LinkedList<City> getCities() {
-        return cities;
+        LinkedList<City> filteredCities = (LinkedList<City>) cities.clone();
+        Iterator<City> iterator = filteredCities.iterator();
+
+        while (iterator.hasNext()){
+            City cc = iterator.next();
+            if (cc.getName().equals("GPS")){
+                iterator.remove();    // You can do the modification here.
+            }
+        }
+        return filteredCities;
     }
     public static LinkedList<Country> getCountries() {
         return countries;
@@ -219,26 +204,11 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         menuInflater.inflate(R.menu.main_menu, menu);
 
         MenuItem searchItem = menu.findItem(R.id.btnSearch);
+        searchItem.setVisible(false);
+
         MenuItem btnBack = menu.findItem(R.id.btnBack);
         btnBack.setVisible(FALSE);
-        searchView = (SearchView) menu.findItem(R.id.btnSearch).getActionView();
-        setupSearchView();
 
-        searchView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-            @Override
-            public void onViewAttachedToWindow(View view) {
-                listViewOfCities.setVisibility(View.VISIBLE);
-                layoutInfo.setVisibility(View.GONE);
-
-            }
-
-            @Override
-            public void onViewDetachedFromWindow(View view) {
-                listViewOfCities.setVisibility(GONE);
-                layoutInfo.setVisibility(View.VISIBLE);
-
-            }
-        });
 
         return true;
     }
@@ -253,20 +223,8 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
                 Intent appInfo = new Intent(DashBoardActivity.this, CityListActivity.class);
                 startActivityForResult(appInfo,REQUEST_FAV);
                 break;
-            case R.id.btnSearch:
-                layoutInfo.setVisibility(GONE);
-                listViewOfCities.setVisibility(View.VISIBLE);
-                break;
-            case R.id.btnBack:
-                Toast.makeText(this, "BACK", Toast.LENGTH_SHORT).show();
-                listViewOfCities.setVisibility(GONE);
-                layoutInfo.setVisibility(View.VISIBLE);
-
-                break;
-
             default:
-                layoutInfo.setVisibility(View.VISIBLE);
-                listViewOfCities.setVisibility(GONE);
+
         }
 
         return true;
@@ -293,21 +251,6 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         return false;
     }
 
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        return false;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        if (TextUtils.isEmpty(newText)){
-            listViewOfCities.clearTextFilter();
-        } else {
-
-            listViewOfCities.setFilterText(newText);
-        }
-        return true;
-    }
 
     private City currentLocation(){
         GPSTracker gps = new GPSTracker(this);
@@ -399,6 +342,8 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode==RESULT_OK && requestCode==REQUEST_FAV) {
             atualizarLista();
+        }else if(resultCode==RESULT_CANCELED){
+            finish();
         }
     }
 
@@ -407,6 +352,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         if(favoriteCity.getName().equals("GPS")){
             favoriteCity=currentLocation();
         }
+        System.out.println(favoriteCity);
         favoriteCity.updateData(urlString);
         cityName.setText(favoriteCity.getName());
         cityTemperature.setText("Temperature: ");
@@ -420,4 +366,5 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
         cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
     }
+
 }

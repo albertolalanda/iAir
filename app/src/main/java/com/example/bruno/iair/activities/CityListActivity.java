@@ -1,5 +1,6 @@
 package com.example.bruno.iair.activities;
 
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -7,8 +8,11 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,6 +23,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.Spinner;
@@ -39,9 +44,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static android.view.View.GONE;
 import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 
-public class CityListActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+public class CityListActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener, SearchView.OnQueryTextListener {
 
     private static final int REQUEST_FAV = 1;
     private ListView listOfCities;
@@ -52,6 +59,10 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
     public LinkedList<Country> countries;
     public String selectedCountry;
     private CheckBox gpsBtn;
+    private SearchView searchView;
+    private ListView listViewOfCities;
+    private LinearLayout cityCountryListLayout;
+    private MenuItem btnBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,11 +77,7 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
         countries = new LinkedList<Country>();
         countries = DashBoardActivity.getCountries();
 
-        /*for(City city:filteredCities){
-            if(city.isFavorite()){
-                selectedPosition=filteredCities.indexOf(city);
-            }
-        }*/
+
 
         //        MAIN_MENU
         Toolbar myToolbar = findViewById(R.id.my_toolbar);
@@ -85,35 +92,6 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
         spinner.setOnItemSelectedListener(this);
 
         listOfCities = findViewById(R.id.cityList);
-        /*cAdapter = new ArrayAdapter<City>(this, R.layout.item_city, R.id.textViewCityName, filteredCities) {
-
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                View v = convertView;
-                if (v == null) {
-                    LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                    v = vi.inflate(R.layout.item_city, null);
-                    RadioButton r = v.findViewById(R.id.radioFavorite);
-                }
-                TextView tv = v.findViewById(R.id.textViewCityName);
-                tv.setText(cities.get(position).toString());
-                RadioButton r = v.findViewById(R.id.radioFavorite);
-                r.setChecked(position == selectedPosition);
-                r.setTag(position);
-
-                r.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        selectedPosition = (Integer)view.getTag();
-                        notifyDataSetChanged();
-                        DashBoardActivity.updateFavorite(filteredCities.get(selectedPosition).toString());
-                    }
-                });
-                return v;
-            }
-
-        };
-        listOfCities.setAdapter(cAdapter);*/
 
         listOfCities.setTextFilterEnabled(true);
 
@@ -161,7 +139,46 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
             }
         });
 
+        listViewOfCities = findViewById(R.id.cityList2);
+        cityCountryListLayout = findViewById(R.id.cityCountryListLayout);
 
+        ArrayAdapter<City> adapter = new ArrayAdapter<City>(this, android.R.layout.simple_list_item_1, cities);
+        listViewOfCities.setAdapter(adapter);
+        listViewOfCities.setTextFilterEnabled(true);
+
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+
+        if (null != searchView) {
+
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+            searchView.setIconifiedByDefault(false);
+        }
+
+        listViewOfCities.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                Intent appInfo = new Intent(CityListActivity.this, CityActivity.class);
+                String data = listViewOfCities.getAdapter().getItem(position).toString();
+                appInfo.putExtra("city", data);
+                startActivityForResult(appInfo,REQUEST_FAV);
+            }
+        });
+
+    }
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        if (TextUtils.isEmpty(newText)){
+            listViewOfCities.clearTextFilter();
+        } else {
+
+            listViewOfCities.setFilterText(newText);
+        }
+        return true;
     }
 
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -217,12 +234,10 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
                 r.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        System.out.println("WTF HERE1!");
                         selectedPosition = (Integer)view.getTag();
                         notifyDataSetChanged();
                         DashBoardActivity.updateFavorite(filteredCities.get(selectedPosition).toString());
                         gpsBtn = findViewById(R.id.checkBoxFavGps);
-                        System.out.println("WTF HERE2!");
                         if (!gpsBtn.isEnabled()){
                             gpsBtn.setChecked(false);
                             gpsBtn.setEnabled(true);
@@ -341,11 +356,39 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.main_menu, menu);
+
         MenuItem btnSearch = menu.findItem(R.id.btnSearch);
-        btnSearch.setVisible(FALSE);
+
         MenuItem item = menu.findItem(R.id.btnCity);
         item.setVisible(false);
+        btnBack = menu.findItem(R.id.btnBack);
+
+        searchView = (SearchView) btnSearch.getActionView();
+        setupSearchView();
+
+        searchView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View view) {
+                listViewOfCities.setVisibility(View.VISIBLE);
+                cityCountryListLayout.setVisibility(View.GONE);
+                btnBack.setVisible(FALSE);
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View view) {
+                listViewOfCities.setVisibility(GONE);
+                cityCountryListLayout.setVisibility(View.VISIBLE);
+                btnBack.setVisible(TRUE);
+            }
+        });
         return true;
+    }
+
+    private void setupSearchView() {
+        searchView.setIconifiedByDefault(false);
+        searchView.setOnQueryTextListener((SearchView.OnQueryTextListener) this);
+        searchView.setSubmitButtonEnabled(true);
+        searchView.setQueryHint("Search Here");
     }
 
     @Override
@@ -366,7 +409,6 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
         super.onActivityResult(requestCode, resultCode, data);
         System.out.println("Activity result");
         if (resultCode==RESULT_OK && requestCode==REQUEST_FAV) {
-            System.out.println("OK");
             atualizarLista();
         }
     }
@@ -430,5 +472,12 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
         };
         listOfCities.setAdapter(cAdapter);
     }
-
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            setResult(RESULT_OK);
+            finish();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }
