@@ -21,4 +21,9 @@
         android:icon="@drawable/ic_action_name"
         android:title="btnCity"
         app:showAsAction="always" />
+    <item
+        android:id="@+id/btnSettings"
+        android:icon="@drawable/icon_settings"
+        android:title="Item"
+        app:showAsAction="always" />
 </menu>
