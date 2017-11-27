@@ -65,6 +65,8 @@ public class SensorDataActivity extends AppCompatActivity implements AdapterView
         cities = new LinkedList<City>();
         cities = DashBoardActivity.getCities();
 
+        username=DashBoardActivity.username;
+
         //        MAIN_MENU
         Toolbar myToolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(myToolbar);
@@ -175,7 +177,7 @@ public class SensorDataActivity extends AppCompatActivity implements AdapterView
                                 + "&field3=" + lon
                                 + "&field4=" + tempData
                                 + "&field5=" + humData
-                                + "&field6=110" /*+ username*/;
+                                + "&field6=" + username;
 
                         // Instantiate the RequestQueue.
                         RequestQueue queue = Volley.newRequestQueue(SensorDataActivity.this);
@@ -214,6 +216,9 @@ public class SensorDataActivity extends AppCompatActivity implements AdapterView
 
         MenuItem item = menu.findItem(R.id.btnCity);
         item.setVisible(false);
+
+        MenuItem settings = menu.findItem(R.id.btnSettings);
+        settings.setVisible(false);
 
         return true;
     }
