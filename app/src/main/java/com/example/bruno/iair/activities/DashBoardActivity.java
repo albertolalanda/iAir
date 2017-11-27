@@ -5,9 +5,9 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -114,8 +114,6 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         swipeRefresh = findViewById(R.id.swiperefresh);
         swipeRefresh.setOnRefreshListener(this);
         swipeRefresh.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.CYAN);
-
-
 
 
 
