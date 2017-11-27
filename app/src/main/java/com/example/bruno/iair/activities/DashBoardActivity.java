@@ -5,8 +5,9 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -46,6 +47,7 @@ import com.example.bruno.iair.services.GPSTracker;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Random;
 
 import static android.view.View.GONE;
 import static java.lang.Boolean.FALSE;
@@ -56,6 +58,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     public static LinkedList<Country> countries;
     private static final int REQUEST_FAV = 1;
 
+    public static String username;
     private City favoriteCity;
     private TextView cityName;
     private LinearLayout linearLayoutAQI;
@@ -97,7 +100,16 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
 
         urlString = "https://api.thingspeak.com/channels/365072/feeds.json?api_key=ZJAGHCE3DO174L1Z";
 
-
+        SharedPreferences sharedPrefs = getSharedPreferences("username", MODE_PRIVATE);
+        if (!sharedPrefs.contains("user")){
+            username = generateUsername();
+            SharedPreferences.Editor editor = sharedPrefs.edit();
+            editor.putString("user", username);
+            editor.commit();
+        }
+        else{
+            username = sharedPrefs.getString("user", null);
+        }
 
         swipeRefresh = findViewById(R.id.swiperefresh);
         swipeRefresh.setOnRefreshListener(this);
@@ -257,6 +269,10 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                 Intent appInfo = new Intent(DashBoardActivity.this, CityListActivity.class);
                 startActivityForResult(appInfo,REQUEST_FAV);
                 break;
+            case R.id.btnSettings:
+                Intent settingsIntent = new Intent(DashBoardActivity.this, SettingsActivity.class);
+                startActivityForResult(settingsIntent, REQUEST_FAV);
+                break;
             default:
 
         }
@@ -402,6 +418,11 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + " ppm");
         cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
         cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
+    }
+
+    public static String generateUsername(){
+        Random ran = new Random();
+        return "user" + ran.nextInt();
     }
 
     @Override
