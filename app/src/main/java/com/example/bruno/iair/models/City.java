@@ -37,6 +37,7 @@ public class City {
     private SensorManager mSensorManager;
     private Sensor mHumiditySensor;
     private Sensor mTemperatureSensor;
+    private LinkedList<Event> events;
 
 
 
@@ -57,6 +58,7 @@ public class City {
         this.carbonMonoxideCO = carbonMonoxideCO;
         this.nitrogenDioxideNO2 = nitrogenDioxideNO2;
         this.isFavorite = false;
+        this.events = new LinkedList<Event>();
     }
     public boolean isFavorite() {
         return isFavorite;
@@ -179,17 +181,32 @@ public class City {
         return new JSONObject(jsonString);
     }
 
-    public void updateData(String urlString){
+    public void updateData(){
         try{
-            JSONObject jsonObject = this.getJSONObjectFromURL(urlString, this.name);
+            JSONObject jsonObject = this.getJSONObjectFromURL("https://api.thingspeak.com/channels/373908/feeds.json?api_key=IRDG2HB6BC8VG461", this.name);
+            JSONObject jsonObject2 = this.getJSONObjectFromURL("https://api.thingspeak.com/channels/373908/feeds.json?api_key=IRDG2HB6BC8VG461", this.name);
+
             System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field1"));
 
+            /*
             this.setOzoneO3(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field1")));
             this.setNitrogenDioxideNO2(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field2")));
             this.setCarbonMonoxideCO(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field3")));
             this.setTemperature(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field4")));
             this.setHumidity(Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field5")));
+            */
+            //System.out.println("******"+ this.name +"******");
+            // Last entry id:
+            int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
 
+            for (int i=0; i<last; i++){
+                //System.out.println("---->" + jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"));
+                if(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1").equals(this.name)){
+                    this.setOzoneO3(Double.parseDouble( jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2") ));
+                    this.setNitrogenDioxideNO2(Double.parseDouble( jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field3") ));
+                    this.setCarbonMonoxideCO(Double.parseDouble( jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field4") ));
+                }
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -247,5 +264,13 @@ public class City {
         if(averagePPM<=604||averagePPM>604)
             return "#cc0000";
         return "#FFFFFF";
+    }
+
+    public LinkedList<Event> getEvents() {
+        return events;
+    }
+
+    public void setEvents(LinkedList<Event> events) {
+        this.events = events;
     }
 }

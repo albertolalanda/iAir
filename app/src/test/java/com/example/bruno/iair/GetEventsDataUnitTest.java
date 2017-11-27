@@ -1,5 +1,6 @@
 package com.example.bruno.iair;
 
+import com.example.bruno.iair.activities.DashBoardActivity;
 import com.example.bruno.iair.models.City;
 import com.example.bruno.iair.models.Country;
 
@@ -12,13 +13,12 @@ import static org.junit.Assert.assertEquals;
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
-public class ThingSpeakGetDataUnitTest {
+public class GetEventsDataUnitTest {
     @Test
     public void gets_data() throws Exception {
         City city = new City("Leiria", new Country("Portugal","PT"), 39.7495331, -8.807683, 30.0, 18.43, 60.55, 60.55, 60.55);
-        city.updateData();
-        assertEquals(20, city.getOzoneO3(),0);
-        assertEquals(40, city.getNitrogenDioxideNO2(),0);
-        assertEquals(18, city.getCarbonMonoxideCO(),0);
+        DashBoardActivity.populateCityEvents(city);
+        assertEquals("Leiria", city.getEvents().get(0).getCity());
+        assertEquals("Fire", city.getEvents().get(0).getType());
     }
 }

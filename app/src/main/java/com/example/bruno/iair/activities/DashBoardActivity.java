@@ -34,8 +34,19 @@ import android.widget.Toast;
 import com.example.bruno.iair.R;
 import com.example.bruno.iair.models.City;
 import com.example.bruno.iair.models.Country;
+import com.example.bruno.iair.models.Event;
+import com.example.bruno.iair.models.TDate;
 import com.example.bruno.iair.services.GPSTracker;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.sql.SQLOutput;
 import java.util.LinkedList;
 
 import static android.view.View.GONE;
@@ -62,12 +73,15 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
     private TextView cityCarbonMonoxideData;
     private TextView cityNitrogenDioxide;
     private TextView cityNitrogenDioxideData;
+    private ListView listViewOfEvents;
     private CheckBox checkFavorite;
     private LinearLayout layoutInfo;
     private ListView listViewOfCities;
     private SearchView searchView;
     private ArrayAdapter<City> adapter;
-    private String urlString;
+    private ArrayAdapter<Event> adapterEvents;
+    public static String citiesURL;
+    public static String countriesURL;
 
     @SuppressLint("ResourceAsColor")
     @Override
@@ -81,8 +95,8 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         Toolbar myToolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(myToolbar);
 
-        urlString = "https://api.thingspeak.com/channels/365072/feeds.json?api_key=ZJAGHCE3DO174L1Z&results=2";
-
+        citiesURL = "https://api.thingspeak.com/channels/371900/feeds.json?api_key=ADDXWHYRJNAY95LZ";
+        countriesURL = "https://api.thingspeak.com/channels/369386/feeds.json?api_key=EH9WYNAGVS2EDGNS";
 
 
         cities = new LinkedList<City>();
@@ -108,8 +122,20 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         listViewOfCities.setTextFilterEnabled(true);
 
 
-        populateCountries();
-        populateCities();
+        try {
+            populateCountries();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        try {
+            populateCities();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         cities.get(1).setFavorite(true);
 
         favoriteCity = City.getFavoriteCity(cities);
@@ -118,7 +144,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
             favoriteCity=currentLocation();
         }
 
-        favoriteCity.updateData(urlString);
+        favoriteCity.updateData();
 
         cityName.setText(favoriteCity.getName());
         linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
@@ -156,11 +182,40 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
             }
         });
 
+
+        try {
+            populateCityEvents(favoriteCity);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        listViewOfEvents = findViewById(R.id.LVEventList);
+        adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
+        listViewOfEvents.setAdapter(adapterEvents);
+        listViewOfEvents.setTextFilterEnabled(true);
+
     }
 
+    public static void populateCityEvents(City city) throws IOException, JSONException {
+        String eventsURL = "https://api.thingspeak.com/channels/371908/feeds.json?api_key=1SED3ZW7C4B1A8J2";
+        JSONObject jsonObject = getJSONObjectFromURL(eventsURL);
+        //System.out.println("******Events******");
+        // Last entry id:
+        int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
+        //System.out.println(jsonObject.getJSONObject("channel").getString("last_entry_id"));
+        LinkedList<Event> events = new LinkedList<Event>();
 
+        for (int i=0; i<last; i++){
+            if(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1").equals(city.getName())){
+                events.add(new Event(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"),jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2"),jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field3"),new TDate(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("created_at"))));
+            }
+        }
 
-
+        city.setEvents(events);
+    }
 
     private void setupSearchView() {
         searchView.setIconifiedByDefault(false);
@@ -190,27 +245,45 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         DashBoardActivity.cities = cities;
     }
 
-    public void populateCountries(){
-        countries.add(new Country("Portugal", "PT"));
-        countries.add(new Country("Spain", "ES"));
+    public void populateCountries() throws IOException, JSONException {
+        JSONObject jsonObject = getJSONObjectFromURL(countriesURL);
+        //System.out.println("******Countries******");
+        // Last entry id:
+        int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
+
+        for (int i=0; i<last; i++){
+            System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"));
+            System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2"));
+            countries.add(new Country(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"),jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2")));
+        }
+
+        //System.out.println(countries);
     }
 
     public Country findCountryWithID(String id){
         for (Country c : countries ) {
-            if(c.getId()==id){
+            if(c.getId().equals(id)){
                 return c;
             }
         }
         return null;
     }
 
-    public void populateCities(){
-        cities.add(new City("Lisbon", findCountryWithID("PT"), 38.7223263, -9.1392714, 30.0, 18.43, 60.55, 60.55, 60.55));
-        cities.add(new City("Leiria", findCountryWithID("PT"), 39.7495331, -8.807683, 30.0, 18.43, 60.55, 60.55, 60.55));
-        cities.add(new City("Porto", findCountryWithID("PT"), 41.1579438, -8.6291053, 30.0, 18.43, 60.55, 60.55, 60.55));
-        cities.add(new City("Barcelona", findCountryWithID("ES"), 30.22, -8.23, 30.0, 18.43, 60.55, 60.55, 60.55));
-        cities.add(new City("GPS", new Country("GPS", "GPS"), 30.22, -8.23, 30.0, 18.43, 60.55, 60.55, 60.55));
-    };
+    public void populateCities() throws IOException, JSONException {
+        JSONObject jsonObject = getJSONObjectFromURL(citiesURL);
+        //System.out.println("******Cities******");
+        // Last entry id:
+        int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
+
+        for (int i=0; i<last; i++){
+            cities.add(new City(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"), findCountryWithID(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field3")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field4")), 0, 0, 0, 0, 0));
+        }
+
+        //System.out.println(cities);
+
+
+
+    }
 
 
     @Override
@@ -407,7 +480,9 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         if(favoriteCity.getName().equals("GPS")){
             favoriteCity=currentLocation();
         }
-        favoriteCity.updateData(urlString);
+        favoriteCity.updateData();
+        linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
+        cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
         cityName.setText(favoriteCity.getName());
         cityTemperature.setText("Temperature: ");
         cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
@@ -419,5 +494,45 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + " ppm");
         cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
         cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
+
+        try {
+            populateCityEvents(favoriteCity);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        listViewOfEvents = findViewById(R.id.LVEventList);
+        adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
+        listViewOfEvents.setAdapter(adapterEvents);
+        listViewOfEvents.setTextFilterEnabled(true);
+
     }
+
+    public static JSONObject getJSONObjectFromURL(String urlString) throws IOException, JSONException {
+        HttpURLConnection urlConnection = null;
+        URL url = new URL(urlString);
+        urlConnection = (HttpURLConnection) url.openConnection();
+        urlConnection.setRequestMethod("GET");
+        urlConnection.setReadTimeout(10000 /* milliseconds */ );
+        urlConnection.setConnectTimeout(15000 /* milliseconds */ );
+        urlConnection.setDoOutput(true);
+        urlConnection.connect();
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
+        StringBuilder sb = new StringBuilder();
+
+        String line;
+        while ((line = br.readLine()) != null) {
+            sb.append(line + "\n");
+        }
+        br.close();
+
+        String jsonString = sb.toString();
+        System.out.println("JSON: " + jsonString);
+
+        return new JSONObject(jsonString);
+    }
+
 }

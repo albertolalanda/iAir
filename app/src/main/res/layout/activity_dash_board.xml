@@ -234,6 +234,26 @@
         android:visibility="gone"
         tools:layout_editor_absoluteX="8dp"
         tools:layout_editor_absoluteY="48dp"
-        tools:listitem="@layout/item_city" />
+        tools:listitem="@layout/item_city" >
+
+    </ListView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Recent Events (Date | Type | UserID)" />
+
+        <ListView
+            android:id="@+id/LVEventList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </LinearLayout>
 
 </LinearLayout>

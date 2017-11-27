@@ -36,7 +36,7 @@ public class CityActivity extends AppCompatActivity {
         cities = new LinkedList<City>();
         cities = DashBoardActivity.getCities();
 
-        urlString = "https://api.thingspeak.com/channels/365072/feeds.json?api_key=ZJAGHCE3DO174L1Z&results=2";
+        urlString = "https://api.thingspeak.com/channels/365072/feeds.json?api_key=ZJAGHCE3DO174L1Z";
 
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -46,7 +46,7 @@ public class CityActivity extends AppCompatActivity {
         final String city = intent.getStringExtra("city");
         thisCity = findThisCity(city);
 
-        thisCity.updateData(urlString);
+        thisCity.updateData();
 
         txtCity = findViewById(R.id.txtCityName);
         chkFavorite = findViewById(R.id.chkFavorite);
