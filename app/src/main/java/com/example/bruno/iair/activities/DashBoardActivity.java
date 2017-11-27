@@ -5,7 +5,12 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,6 +31,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -44,7 +50,7 @@ import java.util.LinkedList;
 import static android.view.View.GONE;
 import static java.lang.Boolean.FALSE;
 
-public class DashBoardActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
+public class DashBoardActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener,SensorEventListener {
 
     public static LinkedList<City> cities;
     public static LinkedList<Country> countries;
@@ -68,6 +74,15 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     private String urlString;
     private SwipeRefreshLayout swipeRefresh;
 
+    private SensorManager mSensorManager;
+    private Sensor mTemperature;
+    private Sensor mHumidity;
+
+    private static float ambientTemperature;
+    private static float relativeHumidity;
+    private static double lon;
+    private static double lat;
+
     @SuppressLint("ResourceAsColor")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,15 +95,13 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         Toolbar myToolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(myToolbar);
 
-        urlString = "https://api.thingspeak.com/channels/365072/feeds.json?api_key=ZJAGHCE3DO174L1Z&results=2";
+        urlString = "https://api.thingspeak.com/channels/365072/feeds.json?api_key=ZJAGHCE3DO174L1Z";
 
 
 
         swipeRefresh = findViewById(R.id.swiperefresh);
         swipeRefresh.setOnRefreshListener(this);
         swipeRefresh.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.CYAN);
-
-
 
 
 
@@ -141,6 +154,27 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         }else{
             Intent appInfo = new Intent(DashBoardActivity.this, SelectFavoriteCityActivity.class);
             startActivityForResult(appInfo,REQUEST_FAV);
+        }
+        Button send = findViewById(R.id.sendDataBtn);
+        send.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Intent appInfo = new Intent(DashBoardActivity.this, SensorDataActivity.class);
+                String data = favoriteCity.getName();
+                appInfo.putExtra("city", data);
+                startActivity(appInfo);
+            }
+        });
+        PackageManager manager = getPackageManager();
+        boolean hasTempSensor = manager.hasSystemFeature(PackageManager.FEATURE_SENSOR_AMBIENT_TEMPERATURE);
+        boolean hasHumSensor = manager.hasSystemFeature(PackageManager.FEATURE_SENSOR_RELATIVE_HUMIDITY);
+        if(!hasTempSensor && !hasHumSensor){
+            send.setEnabled(false);
+        }else{
+            mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+            mTemperature = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+            mHumidity = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
         }
     }
 
@@ -258,6 +292,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         City nearestCity = null;
         double kmAux = 0;
         double kmNearest = 0;
+
         // check if GPS location can get Location
         if (gps.canGetLocation()) {
 
@@ -267,8 +302,8 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                 Log.d("Your Location", "latitude:" + gps.getLatitude()
                         + ", longitude: " + gps.getLongitude());
 
-                double lon = gps.getLongitude();
-                double lat = gps.getLatitude();
+                lon = gps.getLongitude();
+                lat = gps.getLatitude();
 
                 for(City city:cities){
                     if(!city.getName().equals("GPS")){
@@ -281,6 +316,8 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                 }
             }
         }else{
+            lat=Double.MIN_VALUE;
+            lon=Double.MIN_VALUE;
             showAlert();
         }
 
@@ -367,4 +404,61 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
     }
 
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_AMBIENT_TEMPERATURE){
+            ambientTemperature = event.values[0];
+        }else if(event.sensor.getType() == Sensor.TYPE_RELATIVE_HUMIDITY){
+            relativeHumidity = event.values[0];
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(mTemperature!=null){
+            mSensorManager.registerListener(this, mTemperature, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if(mHumidity!=null){
+            mSensorManager.registerListener(this, mHumidity, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(mTemperature!=null || mHumidity!=null){
+            mSensorManager.unregisterListener(this);
+        }
+
+    }
+
+    public double calculateAbsoluteHumidity(){
+        return (216.7 *
+                (relativeHumidity /
+                        100.0 * 6.112 * Math.exp(17.62 * ambientTemperature /
+                        (243.12 + ambientTemperature)) /
+                        (273.15 + ambientTemperature)));
+    }
+
+    public static float getTemp(){
+        return ambientTemperature;
+    }
+
+    public static float getHum(){
+        return relativeHumidity;
+    }
+
+    public static double getLon(){
+        return lon;
+    }
+
+    public static double getLat() {
+        return lat;
+    }
 }
