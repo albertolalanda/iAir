@@ -244,7 +244,13 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     @Override
     public void onRefresh() {
         Toast.makeText(this, "oi", Toast.LENGTH_SHORT).show();
-        atualizarLista();
+        try {
+            atualizarLista();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         new Handler().postDelayed(new Runnable() {
             @Override public void run() {
                 swipeRefresh.setRefreshing(false);
@@ -324,8 +330,6 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
 
         MenuItem btnBack = menu.findItem(R.id.btnBack);
         btnBack.setVisible(FALSE);
-        searchView = (SearchView) menu.findItem(R.id.btnSearch).getActionView();
-        setupSearchView();
 
         return true;
     }
@@ -471,7 +475,13 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            atualizarLista();
+            try {
+                atualizarLista();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }else if(resultCode==RESULT_CANCELED){
             finish();
         }
