@@ -43,8 +43,19 @@ import android.widget.Toast;
 import com.example.bruno.iair.R;
 import com.example.bruno.iair.models.City;
 import com.example.bruno.iair.models.Country;
+import com.example.bruno.iair.models.Event;
+import com.example.bruno.iair.models.TDate;
 import com.example.bruno.iair.services.GPSTracker;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.sql.SQLOutput;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
@@ -72,9 +83,17 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     private TextView cityCarbonMonoxide;
     private TextView cityCarbonMonoxideData;
     private TextView cityNitrogenDioxide;
+    private TextView cityAirQualityDate;
     private TextView cityNitrogenDioxideData;
+    private ListView listViewOfEvents;
     private CheckBox checkFavorite;
-    private String urlString;
+    private LinearLayout layoutInfo;
+    private ListView listViewOfCities;
+    private SearchView searchView;
+    private ArrayAdapter<City> adapter;
+    private ArrayAdapter<Event> adapterEvents;
+    public static String citiesURL;
+    public static String countriesURL;
     private SwipeRefreshLayout swipeRefresh;
 
     private SensorManager mSensorManager;
@@ -98,7 +117,8 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         Toolbar myToolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(myToolbar);
 
-        urlString = "https://api.thingspeak.com/channels/365072/feeds.json?api_key=ZJAGHCE3DO174L1Z";
+        citiesURL = "https://api.thingspeak.com/channels/371900/feeds.json?api_key=ADDXWHYRJNAY95LZ";
+        countriesURL = "https://api.thingspeak.com/channels/369386/feeds.json?api_key=EH9WYNAGVS2EDGNS";
 
         SharedPreferences sharedPrefs = getSharedPreferences("username", MODE_PRIVATE);
         if (!sharedPrefs.contains("user")){
@@ -132,10 +152,29 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cityCarbonMonoxideData = findViewById(R.id.textViewCarbonMonoxideData);
         cityNitrogenDioxide = findViewById(R.id.textViewNitrogenDioxide);
         cityNitrogenDioxideData = findViewById(R.id.textViewNitrogenMonoxideData);
+        cityAirQualityDate = findViewById(R.id.textViewAirQualityDate);
         checkFavorite = findViewById(R.id.checkBoxFavorite);
+        layoutInfo = findViewById(R.id.layoutInfoo);
+        listViewOfCities = findViewById(R.id.cityList);
+        adapter = new ArrayAdapter<City>(this, android.R.layout.simple_list_item_1, cities);
+        listViewOfCities.setAdapter(adapter);
+        listViewOfCities.setTextFilterEnabled(true);
 
-        populateCountries();
-        populateCities();
+
+        try {
+            populateCountries();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        try {
+            populateCities();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         //cities.get(1).setFavorite(true);
 
         favoriteCity = City.getFavoriteCity(cities);
@@ -144,21 +183,33 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                 favoriteCity=currentLocation();
             }
 
-            favoriteCity.updateData(urlString);
+        try {
+            favoriteCity.updateData();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
-            cityName.setText(favoriteCity.getName());
-            linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
-            cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
-            cityTemperature.setText("Temperature: ");
-            cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
-            cityHumidity.setText("Humidity: ");
-            cityHumidityData.setText(favoriteCity.getHumidity() + " %");
-            cityOzone.setText("Ozone: ");
-            cityOzoneData.setText(favoriteCity.getOzoneO3() + " ppm");
-            cityCarbonMonoxide.setText("Carbon Monoxide: ");
-            cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + " ppm");
-            cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
-            cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
+        cityName.setText(favoriteCity.getName());
+        linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
+        cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
+        cityTemperature.setText("Temperature: ");
+        cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
+        cityHumidity.setText("Humidity: ");
+        cityHumidityData.setText(favoriteCity.getHumidity() + " %");
+        cityOzone.setText("O3: ");
+        cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
+        cityCarbonMonoxide.setText("CO2: ");
+        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + "");
+        cityNitrogenDioxide.setText("NO2: ");
+        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + "");
+        cityAirQualityDate.setText(favoriteCity.getDate());
+
+            listViewOfEvents = findViewById(R.id.LVEventList);
+            adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
+            listViewOfEvents.setAdapter(adapterEvents);
+            listViewOfEvents.setTextFilterEnabled(true);
 
             if (favoriteCity.isFavorite()) {
                 checkFavorite.setChecked(true);
@@ -201,6 +252,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         }, 1500);
     }
 
+
     public static LinkedList<City> getCities() {
         LinkedList<City> filteredCities = (LinkedList<City>) cities.clone();
         Iterator<City> iterator = filteredCities.iterator();
@@ -221,27 +273,45 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         DashBoardActivity.cities = cities;
     }
 
-    public void populateCountries(){
-        countries.add(new Country("Portugal", "PT"));
-        countries.add(new Country("Spain", "ES"));
+    public void populateCountries() throws IOException, JSONException {
+        JSONObject jsonObject = getJSONObjectFromURL(countriesURL);
+        //System.out.println("******Countries******");
+        // Last entry id:
+        int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
+
+        for (int i=0; i<last; i++){
+            System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"));
+            System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2"));
+            countries.add(new Country(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"),jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2")));
+        }
+
+        //System.out.println(countries);
     }
 
     public Country findCountryWithID(String id){
         for (Country c : countries ) {
-            if(c.getId()==id){
+            if(c.getId().equals(id)){
                 return c;
             }
         }
         return null;
     }
 
-    public void populateCities(){
-        cities.add(new City("Lisbon", findCountryWithID("PT"), 38.7223263, -9.1392714, 30.0, 18.43, 60.55, 60.55, 60.55));
-        cities.add(new City("Leiria", findCountryWithID("PT"), 39.7495331, -8.807683, 30.0, 18.43, 60.55, 60.55, 60.55));
-        cities.add(new City("Porto", findCountryWithID("PT"), 41.1579438, -8.6291053, 30.0, 18.43, 60.55, 60.55, 60.55));
-        cities.add(new City("Barcelona", findCountryWithID("ES"), 30.22, -8.23, 30.0, 18.43, 60.55, 60.55, 60.55));
-        cities.add(new City("GPS", new Country("GPS", "GPS"), 30.22, -8.23, 30.0, 18.43, 60.55, 60.55, 60.55));
-    };
+    public void populateCities() throws IOException, JSONException {
+        JSONObject jsonObject = getJSONObjectFromURL(citiesURL);
+        //System.out.println("******Cities******");
+        // Last entry id:
+        int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
+
+        for (int i=0; i<last; i++){
+            cities.add(new City(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"), findCountryWithID(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field3")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field4"))));
+        }
+
+        //System.out.println(cities);
+
+
+
+    }
 
 
     @Override
@@ -254,7 +324,8 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
 
         MenuItem btnBack = menu.findItem(R.id.btnBack);
         btnBack.setVisible(FALSE);
-
+        searchView = (SearchView) menu.findItem(R.id.btnSearch).getActionView();
+        setupSearchView();
 
         return true;
     }
@@ -308,7 +379,6 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         City nearestCity = null;
         double kmAux = 0;
         double kmNearest = 0;
-
         // check if GPS location can get Location
         if (gps.canGetLocation()) {
 
@@ -394,31 +464,72 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode==RESULT_OK && requestCode==REQUEST_FAV) {
+            try {
+                atualizarLista();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
             atualizarLista();
         }else if(resultCode==RESULT_CANCELED){
             finish();
         }
     }
 
-    private void atualizarLista() {
+    private void atualizarLista() throws IOException, JSONException {
         favoriteCity = City.getFavoriteCity(cities);
         if(favoriteCity.getName().equals("GPS")){
             favoriteCity=currentLocation();
         }
-        System.out.println(favoriteCity);
-        favoriteCity.updateData(urlString);
+        favoriteCity.updateData();
+        linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
+        cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
         cityName.setText(favoriteCity.getName());
         cityTemperature.setText("Temperature: ");
         cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
         cityHumidity.setText("Humidity: ");
         cityHumidityData.setText(favoriteCity.getHumidity() + " %");
-        cityOzone.setText("Ozone: ");
-        cityOzoneData.setText(favoriteCity.getOzoneO3() + " ppm");
-        cityCarbonMonoxide.setText("Carbon Monoxide: ");
-        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + " ppm");
-        cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
-        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
+        cityOzone.setText("O3: ");
+        cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
+        cityCarbonMonoxide.setText("CO: ");
+        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + "");
+        cityNitrogenDioxide.setText("NO2: ");
+        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + "");
+
+
+        listViewOfEvents = findViewById(R.id.LVEventList);
+        adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
+        listViewOfEvents.setAdapter(adapterEvents);
+        listViewOfEvents.setTextFilterEnabled(true);
+
     }
+
+    public static JSONObject getJSONObjectFromURL(String urlString) throws IOException, JSONException {
+        HttpURLConnection urlConnection = null;
+        URL url = new URL(urlString);
+        urlConnection = (HttpURLConnection) url.openConnection();
+        urlConnection.setRequestMethod("GET");
+        urlConnection.setReadTimeout(10000 /* milliseconds */ );
+        urlConnection.setConnectTimeout(15000 /* milliseconds */ );
+        urlConnection.setDoOutput(true);
+        urlConnection.connect();
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
+        StringBuilder sb = new StringBuilder();
+
+        String line;
+        while ((line = br.readLine()) != null) {
+            sb.append(line + "\n");
+        }
+        br.close();
+
+        String jsonString = sb.toString();
+        System.out.println("JSON: " + jsonString);
+
+        return new JSONObject(jsonString);
+    }
+
 
     public static String generateUsername(){
         Random ran = new Random();

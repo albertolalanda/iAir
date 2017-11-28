@@ -69,13 +69,24 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_city_list);
 
+        countries = new LinkedList<Country>();
+        countries = DashBoardActivity.getCountries();
+
         cities = new LinkedList<City>();
         cities = DashBoardActivity.getCities();
 
-        filteredCities = (LinkedList<City>) cities.clone();
+        for(Country c: countries){
+            System.out.println(c.getName());
+            System.out.println(c.getId());
+        }
 
-        countries = new LinkedList<Country>();
-        countries = DashBoardActivity.getCountries();
+        System.out.println(cities);
+        for(City d: cities){
+            System.out.println(d.getName());
+            System.out.println(d.getCountry());
+        }
+
+        filteredCities = (LinkedList<City>) cities.clone();
 
 
 
@@ -184,6 +195,7 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         // On selecting a spinner item
         String item = parent.getItemAtPosition(position).toString();
+        System.out.println(item);
 
         // Showing selected spinner item
         Toast.makeText(parent.getContext(), "Selected: " + item, Toast.LENGTH_LONG).show();
