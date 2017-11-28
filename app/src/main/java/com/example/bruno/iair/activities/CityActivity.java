@@ -15,6 +15,9 @@ import android.widget.TextView;
 import com.example.bruno.iair.R;
 import com.example.bruno.iair.models.City;
 
+import org.json.JSONException;
+
+import java.io.IOException;
 import java.util.LinkedList;
 
 import static java.lang.Boolean.FALSE;
@@ -36,7 +39,7 @@ public class CityActivity extends AppCompatActivity {
         cities = new LinkedList<City>();
         cities = DashBoardActivity.getCities();
 
-        urlString = "https://api.thingspeak.com/channels/365072/feeds.json?api_key=ZJAGHCE3DO174L1Z&results=2";
+        urlString = "https://api.thingspeak.com/channels/365072/feeds.json?api_key=ZJAGHCE3DO174L1Z";
 
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -46,7 +49,13 @@ public class CityActivity extends AppCompatActivity {
         final String city = intent.getStringExtra("city");
         thisCity = findThisCity(city);
 
-        thisCity.updateData(urlString);
+        try {
+            thisCity.updateData();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         txtCity = findViewById(R.id.txtCityName);
         chkFavorite = findViewById(R.id.chkFavorite);

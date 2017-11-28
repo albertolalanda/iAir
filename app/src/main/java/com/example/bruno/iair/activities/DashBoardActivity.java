@@ -6,11 +6,19 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.StrictMode;
 import android.support.v4.view.MenuItemCompat;
 import android.provider.Settings;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
@@ -24,6 +32,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -34,20 +43,33 @@ import android.widget.Toast;
 import com.example.bruno.iair.R;
 import com.example.bruno.iair.models.City;
 import com.example.bruno.iair.models.Country;
+import com.example.bruno.iair.models.Event;
+import com.example.bruno.iair.models.TDate;
 import com.example.bruno.iair.services.GPSTracker;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.sql.SQLOutput;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Random;
 
 import static android.view.View.GONE;
 import static java.lang.Boolean.FALSE;
 
-public class DashBoardActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
+public class DashBoardActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener,SensorEventListener {
 
     public static LinkedList<City> cities;
     public static LinkedList<Country> countries;
     private static final int REQUEST_FAV = 1;
 
-
+    public static String username;
     private City favoriteCity;
     private TextView cityName;
     private LinearLayout linearLayoutAQI;
@@ -61,13 +83,27 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
     private TextView cityCarbonMonoxide;
     private TextView cityCarbonMonoxideData;
     private TextView cityNitrogenDioxide;
+    private TextView cityAirQualityDate;
     private TextView cityNitrogenDioxideData;
+    private ListView listViewOfEvents;
     private CheckBox checkFavorite;
     private LinearLayout layoutInfo;
     private ListView listViewOfCities;
     private SearchView searchView;
     private ArrayAdapter<City> adapter;
-    private String urlString;
+    private ArrayAdapter<Event> adapterEvents;
+    public static String citiesURL;
+    public static String countriesURL;
+    private SwipeRefreshLayout swipeRefresh;
+
+    private SensorManager mSensorManager;
+    private Sensor mTemperature;
+    private Sensor mHumidity;
+
+    private static float ambientTemperature;
+    private static float relativeHumidity;
+    private static double lon;
+    private static double lat;
 
     @SuppressLint("ResourceAsColor")
     @Override
@@ -81,7 +117,23 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         Toolbar myToolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(myToolbar);
 
-        urlString = "https://api.thingspeak.com/channels/365072/feeds.json?api_key=ZJAGHCE3DO174L1Z&results=2";
+        citiesURL = "https://api.thingspeak.com/channels/371900/feeds.json?api_key=ADDXWHYRJNAY95LZ";
+        countriesURL = "https://api.thingspeak.com/channels/369386/feeds.json?api_key=EH9WYNAGVS2EDGNS";
+
+        SharedPreferences sharedPrefs = getSharedPreferences("username", MODE_PRIVATE);
+        if (!sharedPrefs.contains("user")){
+            username = generateUsername();
+            SharedPreferences.Editor editor = sharedPrefs.edit();
+            editor.putString("user", username);
+            editor.commit();
+        }
+        else{
+            username = sharedPrefs.getString("user", null);
+        }
+
+        swipeRefresh = findViewById(R.id.swiperefresh);
+        swipeRefresh.setOnRefreshListener(this);
+        swipeRefresh.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.CYAN);
 
 
 
@@ -100,6 +152,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         cityCarbonMonoxideData = findViewById(R.id.textViewCarbonMonoxideData);
         cityNitrogenDioxide = findViewById(R.id.textViewNitrogenDioxide);
         cityNitrogenDioxideData = findViewById(R.id.textViewNitrogenMonoxideData);
+        cityAirQualityDate = findViewById(R.id.textViewAirQualityDate);
         checkFavorite = findViewById(R.id.checkBoxFavorite);
         layoutInfo = findViewById(R.id.layoutInfoo);
         listViewOfCities = findViewById(R.id.cityList);
@@ -108,17 +161,35 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         listViewOfCities.setTextFilterEnabled(true);
 
 
-        populateCountries();
-        populateCities();
-        cities.get(1).setFavorite(true);
+        try {
+            populateCountries();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        try {
+            populateCities();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        //cities.get(1).setFavorite(true);
 
         favoriteCity = City.getFavoriteCity(cities);
+        if(favoriteCity!=null){
+            if(favoriteCity.getName().equals("GPS")){
+                favoriteCity=currentLocation();
+            }
 
-        if(favoriteCity.getName().equals("GPS")){
-            favoriteCity=currentLocation();
+        try {
+            favoriteCity.updateData();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
-
-        favoriteCity.updateData(urlString);
 
         cityName.setText(favoriteCity.getName());
         linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
@@ -127,60 +198,72 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
         cityHumidity.setText("Humidity: ");
         cityHumidityData.setText(favoriteCity.getHumidity() + " %");
-        cityOzone.setText("Ozone: ");
-        cityOzoneData.setText(favoriteCity.getOzoneO3() + " ppm");
-        cityCarbonMonoxide.setText("Carbon Monoxide: ");
-        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + " ppm");
-        cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
-        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
+        cityOzone.setText("O3: ");
+        cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
+        cityCarbonMonoxide.setText("CO2: ");
+        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + "");
+        cityNitrogenDioxide.setText("NO2: ");
+        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + "");
+        cityAirQualityDate.setText(favoriteCity.getDate());
 
-        if (favoriteCity.isFavorite()) {
-            checkFavorite.setChecked(true);
+            listViewOfEvents = findViewById(R.id.LVEventList);
+            adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
+            listViewOfEvents.setAdapter(adapterEvents);
+            listViewOfEvents.setTextFilterEnabled(true);
+
+            if (favoriteCity.isFavorite()) {
+                checkFavorite.setChecked(true);
+            }
+        }else{
+            Intent appInfo = new Intent(DashBoardActivity.this, SelectFavoriteCityActivity.class);
+            startActivityForResult(appInfo,REQUEST_FAV);
         }
+        Button send = findViewById(R.id.sendDataBtn);
+        send.setOnClickListener(new View.OnClickListener() {
 
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-
-        if (null != searchView) {
-
-            searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-            searchView.setIconifiedByDefault(false);
-        }
-
-        listViewOfCities.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Intent appInfo = new Intent(DashBoardActivity.this, CityActivity.class);
-                String data = listViewOfCities.getAdapter().getItem(position).toString();
+            public void onClick(View v) {
+                Intent appInfo = new Intent(DashBoardActivity.this, SensorDataActivity.class);
+                String data = favoriteCity.getName();
                 appInfo.putExtra("city", data);
-                startActivityForResult(appInfo,REQUEST_FAV);
+                startActivity(appInfo);
             }
         });
-
+        PackageManager manager = getPackageManager();
+        boolean hasTempSensor = manager.hasSystemFeature(PackageManager.FEATURE_SENSOR_AMBIENT_TEMPERATURE);
+        boolean hasHumSensor = manager.hasSystemFeature(PackageManager.FEATURE_SENSOR_RELATIVE_HUMIDITY);
+        if(!hasTempSensor && !hasHumSensor){
+            send.setEnabled(false);
+        }else{
+            mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+            mTemperature = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+            mHumidity = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+        }
     }
 
-
-
-
-
-    private void setupSearchView() {
-        searchView.setIconifiedByDefault(false);
-        searchView.setOnQueryTextListener((SearchView.OnQueryTextListener) this);
-        searchView.setSubmitButtonEnabled(true);
-        searchView.setQueryHint("Search Here");
-        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
-            @Override
-            public boolean onClose() {
-                Toast.makeText(DashBoardActivity.this, "tosta", Toast.LENGTH_SHORT).show();
-                listViewOfCities.setVisibility(GONE);
-                layoutInfo.setVisibility(View.VISIBLE);
-                return true;
+    @Override
+    public void onRefresh() {
+        Toast.makeText(this, "oi", Toast.LENGTH_SHORT).show();
+        atualizarLista();
+        new Handler().postDelayed(new Runnable() {
+            @Override public void run() {
+                swipeRefresh.setRefreshing(false);
             }
-        });
+        }, 1500);
     }
 
 
     public static LinkedList<City> getCities() {
-        return cities;
+        LinkedList<City> filteredCities = (LinkedList<City>) cities.clone();
+        Iterator<City> iterator = filteredCities.iterator();
+
+        while (iterator.hasNext()){
+            City cc = iterator.next();
+            if (cc.getName().equals("GPS")){
+                iterator.remove();    // You can do the modification here.
+            }
+        }
+        return filteredCities;
     }
     public static LinkedList<Country> getCountries() {
         return countries;
@@ -190,27 +273,45 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         DashBoardActivity.cities = cities;
     }
 
-    public void populateCountries(){
-        countries.add(new Country("Portugal", "PT"));
-        countries.add(new Country("Spain", "ES"));
+    public void populateCountries() throws IOException, JSONException {
+        JSONObject jsonObject = getJSONObjectFromURL(countriesURL);
+        //System.out.println("******Countries******");
+        // Last entry id:
+        int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
+
+        for (int i=0; i<last; i++){
+            System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"));
+            System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2"));
+            countries.add(new Country(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"),jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2")));
+        }
+
+        //System.out.println(countries);
     }
 
     public Country findCountryWithID(String id){
         for (Country c : countries ) {
-            if(c.getId()==id){
+            if(c.getId().equals(id)){
                 return c;
             }
         }
         return null;
     }
 
-    public void populateCities(){
-        cities.add(new City("Lisbon", findCountryWithID("PT"), 38.7223263, -9.1392714, 30.0, 18.43, 60.55, 60.55, 60.55));
-        cities.add(new City("Leiria", findCountryWithID("PT"), 39.7495331, -8.807683, 30.0, 18.43, 60.55, 60.55, 60.55));
-        cities.add(new City("Porto", findCountryWithID("PT"), 41.1579438, -8.6291053, 30.0, 18.43, 60.55, 60.55, 60.55));
-        cities.add(new City("Barcelona", findCountryWithID("ES"), 30.22, -8.23, 30.0, 18.43, 60.55, 60.55, 60.55));
-        cities.add(new City("GPS", new Country("GPS", "GPS"), 30.22, -8.23, 30.0, 18.43, 60.55, 60.55, 60.55));
-    };
+    public void populateCities() throws IOException, JSONException {
+        JSONObject jsonObject = getJSONObjectFromURL(citiesURL);
+        //System.out.println("******Cities******");
+        // Last entry id:
+        int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
+
+        for (int i=0; i<last; i++){
+            cities.add(new City(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"), findCountryWithID(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field3")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field4"))));
+        }
+
+        //System.out.println(cities);
+
+
+
+    }
 
 
     @Override
@@ -219,26 +320,12 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         menuInflater.inflate(R.menu.main_menu, menu);
 
         MenuItem searchItem = menu.findItem(R.id.btnSearch);
+        searchItem.setVisible(false);
+
         MenuItem btnBack = menu.findItem(R.id.btnBack);
         btnBack.setVisible(FALSE);
         searchView = (SearchView) menu.findItem(R.id.btnSearch).getActionView();
         setupSearchView();
-
-        searchView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-            @Override
-            public void onViewAttachedToWindow(View view) {
-                listViewOfCities.setVisibility(View.VISIBLE);
-                layoutInfo.setVisibility(View.GONE);
-
-            }
-
-            @Override
-            public void onViewDetachedFromWindow(View view) {
-                listViewOfCities.setVisibility(GONE);
-                layoutInfo.setVisibility(View.VISIBLE);
-
-            }
-        });
 
         return true;
     }
@@ -253,20 +340,12 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
                 Intent appInfo = new Intent(DashBoardActivity.this, CityListActivity.class);
                 startActivityForResult(appInfo,REQUEST_FAV);
                 break;
-            case R.id.btnSearch:
-                layoutInfo.setVisibility(GONE);
-                listViewOfCities.setVisibility(View.VISIBLE);
+            case R.id.btnSettings:
+                Intent settingsIntent = new Intent(DashBoardActivity.this, SettingsActivity.class);
+                startActivityForResult(settingsIntent, REQUEST_FAV);
                 break;
-            case R.id.btnBack:
-                Toast.makeText(this, "BACK", Toast.LENGTH_SHORT).show();
-                listViewOfCities.setVisibility(GONE);
-                layoutInfo.setVisibility(View.VISIBLE);
-
-                break;
-
             default:
-                layoutInfo.setVisibility(View.VISIBLE);
-                listViewOfCities.setVisibility(GONE);
+
         }
 
         return true;
@@ -293,21 +372,6 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         return false;
     }
 
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        return false;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        if (TextUtils.isEmpty(newText)){
-            listViewOfCities.clearTextFilter();
-        } else {
-
-            listViewOfCities.setFilterText(newText);
-        }
-        return true;
-    }
 
     private City currentLocation(){
         GPSTracker gps = new GPSTracker(this);
@@ -324,8 +388,8 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
                 Log.d("Your Location", "latitude:" + gps.getLatitude()
                         + ", longitude: " + gps.getLongitude());
 
-                double lon = gps.getLongitude();
-                double lat = gps.getLatitude();
+                lon = gps.getLongitude();
+                lat = gps.getLatitude();
 
                 for(City city:cities){
                     if(!city.getName().equals("GPS")){
@@ -338,6 +402,8 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
                 }
             }
         }else{
+            lat=Double.MIN_VALUE;
+            lon=Double.MIN_VALUE;
             showAlert();
         }
 
@@ -398,26 +464,133 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode==RESULT_OK && requestCode==REQUEST_FAV) {
+            try {
+                atualizarLista();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
             atualizarLista();
+        }else if(resultCode==RESULT_CANCELED){
+            finish();
         }
     }
 
-    private void atualizarLista() {
+    private void atualizarLista() throws IOException, JSONException {
         favoriteCity = City.getFavoriteCity(cities);
         if(favoriteCity.getName().equals("GPS")){
             favoriteCity=currentLocation();
         }
-        favoriteCity.updateData(urlString);
+        favoriteCity.updateData();
+        linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
+        cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
         cityName.setText(favoriteCity.getName());
         cityTemperature.setText("Temperature: ");
         cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
         cityHumidity.setText("Humidity: ");
         cityHumidityData.setText(favoriteCity.getHumidity() + " %");
-        cityOzone.setText("Ozone: ");
-        cityOzoneData.setText(favoriteCity.getOzoneO3() + " ppm");
-        cityCarbonMonoxide.setText("Carbon Monoxide: ");
-        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + " ppm");
-        cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
-        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
+        cityOzone.setText("O3: ");
+        cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
+        cityCarbonMonoxide.setText("CO: ");
+        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + "");
+        cityNitrogenDioxide.setText("NO2: ");
+        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + "");
+
+
+        listViewOfEvents = findViewById(R.id.LVEventList);
+        adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
+        listViewOfEvents.setAdapter(adapterEvents);
+        listViewOfEvents.setTextFilterEnabled(true);
+
+    }
+
+    public static JSONObject getJSONObjectFromURL(String urlString) throws IOException, JSONException {
+        HttpURLConnection urlConnection = null;
+        URL url = new URL(urlString);
+        urlConnection = (HttpURLConnection) url.openConnection();
+        urlConnection.setRequestMethod("GET");
+        urlConnection.setReadTimeout(10000 /* milliseconds */ );
+        urlConnection.setConnectTimeout(15000 /* milliseconds */ );
+        urlConnection.setDoOutput(true);
+        urlConnection.connect();
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
+        StringBuilder sb = new StringBuilder();
+
+        String line;
+        while ((line = br.readLine()) != null) {
+            sb.append(line + "\n");
+        }
+        br.close();
+
+        String jsonString = sb.toString();
+        System.out.println("JSON: " + jsonString);
+
+        return new JSONObject(jsonString);
+    }
+
+
+    public static String generateUsername(){
+        Random ran = new Random();
+        return "user" + ran.nextInt();
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_AMBIENT_TEMPERATURE){
+            ambientTemperature = event.values[0];
+        }else if(event.sensor.getType() == Sensor.TYPE_RELATIVE_HUMIDITY){
+            relativeHumidity = event.values[0];
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(mTemperature!=null){
+            mSensorManager.registerListener(this, mTemperature, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if(mHumidity!=null){
+            mSensorManager.registerListener(this, mHumidity, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(mTemperature!=null || mHumidity!=null){
+            mSensorManager.unregisterListener(this);
+        }
+
+    }
+
+    public double calculateAbsoluteHumidity(){
+        return (216.7 *
+                (relativeHumidity /
+                        100.0 * 6.112 * Math.exp(17.62 * ambientTemperature /
+                        (243.12 + ambientTemperature)) /
+                        (273.15 + ambientTemperature)));
+    }
+
+    public static float getTemp(){
+        return ambientTemperature;
+    }
+
+    public static float getHum(){
+        return relativeHumidity;
+    }
+
+    public static double getLon(){
+        return lon;
+    }
+
+    public static double getLat() {
+        return lat;
     }
 }
