@@ -16,8 +16,8 @@ import static org.junit.Assert.assertEquals;
 public class GetEventsDataUnitTest {
     @Test
     public void gets_data() throws Exception {
-        City city = new City("Leiria", new Country("Portugal","PT"), 39.7495331, -8.807683, 30.0, 18.43, 60.55, 60.55, 60.55);
-        DashBoardActivity.populateCityEvents(city);
+        City city = new City("Leiria", new Country("Portugal","PT"), 39.7495331, -8.807683);
+        city.updateCityEvents();
         assertEquals("Leiria", city.getEvents().get(0).getCity());
         assertEquals("Fire", city.getEvents().get(0).getType());
     }

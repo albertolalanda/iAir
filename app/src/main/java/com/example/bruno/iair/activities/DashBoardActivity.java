@@ -72,6 +72,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
     private TextView cityCarbonMonoxide;
     private TextView cityCarbonMonoxideData;
     private TextView cityNitrogenDioxide;
+    private TextView cityAirQualityDate;
     private TextView cityNitrogenDioxideData;
     private ListView listViewOfEvents;
     private CheckBox checkFavorite;
@@ -114,6 +115,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         cityCarbonMonoxideData = findViewById(R.id.textViewCarbonMonoxideData);
         cityNitrogenDioxide = findViewById(R.id.textViewNitrogenDioxide);
         cityNitrogenDioxideData = findViewById(R.id.textViewNitrogenMonoxideData);
+        cityAirQualityDate = findViewById(R.id.textViewAirQualityDate);
         checkFavorite = findViewById(R.id.checkBoxFavorite);
         layoutInfo = findViewById(R.id.layoutInfoo);
         listViewOfCities = findViewById(R.id.cityList);
@@ -144,7 +146,13 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
             favoriteCity=currentLocation();
         }
 
-        favoriteCity.updateData();
+        try {
+            favoriteCity.updateData();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         cityName.setText(favoriteCity.getName());
         linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
@@ -153,12 +161,14 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
         cityHumidity.setText("Humidity: ");
         cityHumidityData.setText(favoriteCity.getHumidity() + " %");
-        cityOzone.setText("Ozone: ");
-        cityOzoneData.setText(favoriteCity.getOzoneO3() + " ppm");
-        cityCarbonMonoxide.setText("Carbon Monoxide: ");
-        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + " ppm");
-        cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
-        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
+        cityOzone.setText("O3: ");
+        cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
+        cityCarbonMonoxide.setText("CO2: ");
+        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + "");
+        cityNitrogenDioxide.setText("NO2: ");
+        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + "");
+        cityAirQualityDate.setText(favoriteCity.getDate());
+
 
         if (favoriteCity.isFavorite()) {
             checkFavorite.setChecked(true);
@@ -183,38 +193,11 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         });
 
 
-        try {
-            populateCityEvents(favoriteCity);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-
         listViewOfEvents = findViewById(R.id.LVEventList);
         adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
         listViewOfEvents.setAdapter(adapterEvents);
         listViewOfEvents.setTextFilterEnabled(true);
 
-    }
-
-    public static void populateCityEvents(City city) throws IOException, JSONException {
-        String eventsURL = "https://api.thingspeak.com/channels/371908/feeds.json?api_key=1SED3ZW7C4B1A8J2";
-        JSONObject jsonObject = getJSONObjectFromURL(eventsURL);
-        //System.out.println("******Events******");
-        // Last entry id:
-        int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
-        //System.out.println(jsonObject.getJSONObject("channel").getString("last_entry_id"));
-        LinkedList<Event> events = new LinkedList<Event>();
-
-        for (int i=0; i<last; i++){
-            if(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1").equals(city.getName())){
-                events.add(new Event(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"),jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2"),jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field3"),new TDate(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("created_at"))));
-            }
-        }
-
-        city.setEvents(events);
     }
 
     private void setupSearchView() {
@@ -276,7 +259,7 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
 
         for (int i=0; i<last; i++){
-            cities.add(new City(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"), findCountryWithID(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field3")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field4")), 0, 0, 0, 0, 0));
+            cities.add(new City(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"), findCountryWithID(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field3")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field4"))));
         }
 
         //System.out.println(cities);
@@ -471,11 +454,17 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode==RESULT_OK && requestCode==REQUEST_FAV) {
-            atualizarLista();
+            try {
+                atualizarLista();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    private void atualizarLista() {
+    private void atualizarLista() throws IOException, JSONException {
         favoriteCity = City.getFavoriteCity(cities);
         if(favoriteCity.getName().equals("GPS")){
             favoriteCity=currentLocation();
@@ -488,20 +477,13 @@ public class DashBoardActivity extends AppCompatActivity implements SearchView.O
         cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
         cityHumidity.setText("Humidity: ");
         cityHumidityData.setText(favoriteCity.getHumidity() + " %");
-        cityOzone.setText("Ozone: ");
-        cityOzoneData.setText(favoriteCity.getOzoneO3() + " ppm");
-        cityCarbonMonoxide.setText("Carbon Monoxide: ");
-        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + " ppm");
-        cityNitrogenDioxide.setText("Nitrogen Dioxide: ");
-        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + " ppm");
+        cityOzone.setText("O3: ");
+        cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
+        cityCarbonMonoxide.setText("CO: ");
+        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + "");
+        cityNitrogenDioxide.setText("NO2: ");
+        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + "");
 
-        try {
-            populateCityEvents(favoriteCity);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
 
         listViewOfEvents = findViewById(R.id.LVEventList);
         adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());

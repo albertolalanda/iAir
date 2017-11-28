@@ -15,8 +15,8 @@ import static org.junit.Assert.assertEquals;
 public class ThingSpeakGetDataUnitTest {
     @Test
     public void gets_data() throws Exception {
-        City city = new City("Leiria", new Country("Portugal","PT"), 39.7495331, -8.807683, 30.0, 18.43, 60.55, 60.55, 60.55);
-        city.updateData();
+        City city = new City("Leiria", new Country("Portugal","PT"), 39.7495331, -8.807683);
+        city.updateAirQualityHistory();
         assertEquals(20, city.getOzoneO3(),0);
         assertEquals(40, city.getNitrogenDioxideNO2(),0);
         assertEquals(18, city.getCarbonMonoxideCO(),0);
