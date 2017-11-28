@@ -24,7 +24,6 @@ public class AirQualityIndexCheckValues {
         City city5 = new City("Leiria", new Country("Portugal","PT"), 39.7495331, -8.807683, 30.0, 18.43, 400, 400, 400);
         City city6 = new City("Leiria", new Country("Portugal","PT"), 39.7495331, -8.807683, 30.0, 18.43, 500, 500, 500);
 
-
         assertEquals("Good", city.getAQI());
         assertEquals("Moderate", city2.getAQI());
         assertEquals("Unhealthy for Sensitive Groups", city3.getAQI());
