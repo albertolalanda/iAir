@@ -119,7 +119,31 @@ public class EventsDataActivity extends AppCompatActivity implements AdapterView
                 eventName = "Fire";
             }
         });
+        radioFire.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                radioFire.setChecked(true);
+                radioFlood.setChecked(false);
+                radioEarthQuake.setChecked(false);
+                radioTsunami.setChecked(false);
+                radioOther.setChecked(false);
+                editTextOtherEvent.setEnabled(false);
+                send.setEnabled(true);
+                eventName = "Fire";
+            }
+        });
         layoutFlood.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                radioFire.setChecked(false);
+                radioFlood.setChecked(true);
+                radioEarthQuake.setChecked(false);
+                radioTsunami.setChecked(false);
+                radioOther.setChecked(false);
+                editTextOtherEvent.setEnabled(false);
+                send.setEnabled(true);
+                eventName = "Flood";
+            }
+        });
+        radioFlood.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 radioFire.setChecked(false);
                 radioFlood.setChecked(true);
@@ -143,7 +167,31 @@ public class EventsDataActivity extends AppCompatActivity implements AdapterView
                 eventName = "Earthquake";
             }
         });
+        radioEarthQuake.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                radioFire.setChecked(false);
+                radioFlood.setChecked(false);
+                radioEarthQuake.setChecked(true);
+                radioTsunami.setChecked(false);
+                radioOther.setChecked(false);
+                editTextOtherEvent.setEnabled(false);
+                send.setEnabled(true);
+                eventName = "Earthquake";
+            }
+        });
         layoutTsunami.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                radioFire.setChecked(false);
+                radioFlood.setChecked(false);
+                radioEarthQuake.setChecked(false);
+                radioTsunami.setChecked(true);
+                radioOther.setChecked(false);
+                editTextOtherEvent.setEnabled(false);
+                send.setEnabled(true);
+                eventName = "Tsunami";
+            }
+        });
+        radioTsunami.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 radioFire.setChecked(false);
                 radioFlood.setChecked(false);
