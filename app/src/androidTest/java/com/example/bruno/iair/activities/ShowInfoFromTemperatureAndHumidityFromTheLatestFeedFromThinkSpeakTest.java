@@ -1,6 +1,7 @@
 package com.example.bruno.iair.activities;
 
 
+import android.support.test.espresso.DataInteraction;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
@@ -19,6 +20,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static android.support.test.espresso.Espresso.onData;
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
@@ -27,68 +29,45 @@ import static android.support.test.espresso.matcher.ViewMatchers.withClassName;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.anything;
 import static org.hamcrest.Matchers.is;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class ChangeCurrentLocationWithSwipeDown {
+public class ShowInfoFromTemperatureAndHumidityFromTheLatestFeedFromThinkSpeakTest {
 
     @Rule
     public ActivityTestRule<DashBoardActivity> mActivityTestRule = new ActivityTestRule<>(DashBoardActivity.class);
 
     @Test
-    public void changeCurrentLocationWithSwipeDown() {
-        ViewInteraction appCompatButton = onView(
-                allOf(withId(R.id.btnCurrentLocation), withText("Current Location"),
+    public void showInfoFromTemperatureAndHumidityFromTheLatestFeedFromThinkSpeak() {
+        DataInteraction linearLayout = onData(anything())
+                .inAdapterView(allOf(withId(R.id.cityList),
                         childAtPosition(
-                                childAtPosition(
-                                        withClassName(is("android.widget.RelativeLayout")),
-                                        0),
-                                0),
-                        isDisplayed()));
-        appCompatButton.perform(click());
+                                withClassName(is("android.widget.LinearLayout")),
+                                1)))
+                .atPosition(0);
+        linearLayout.perform(click());
 
         ViewInteraction textView = onView(
-                allOf(withId(R.id.textViewCityName), withText("Leiria"),
+                allOf(withId(R.id.textViewTemperatureData), withText("21.8 ?C"),
                         childAtPosition(
                                 childAtPosition(
-                                        withId(R.id.layoutInfoo),
+                                        IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
                                         0),
-                                0),
-                        isDisplayed()));
-        textView.check(matches(withText("Leiria")));
-
-        ViewInteraction textView2 = onView(
-                allOf(withId(R.id.textViewCityName), withText("Leiria"),
-                        childAtPosition(
-                                childAtPosition(
-                                        withId(R.id.layoutInfoo),
-                                        0),
-                                0),
-                        isDisplayed()));
-        textView2.check(matches(withText("Leiria")));
-
-        //DoneByMockingGPS Coordinates
-        /*ViewInteraction textView3 = onView(
-                allOf(withText("Fake GPS"),
-                        childAtPosition(
-                                allOf(withId(com.lexa.fakegps.R.id.toolbar),
-                                        childAtPosition(
-                                                IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
-                                                0)),
                                 1),
                         isDisplayed()));
-        textView3.check(matches(withText("Fake GPS")));*/
+        textView.check(matches(isDisplayed()));
 
-        ViewInteraction textView4 = onView(
-                allOf(withId(R.id.textViewCityName), withText("Lisbon"),
+        ViewInteraction textView2 = onView(
+                allOf(withId(R.id.textViewHumidityData), withText("59.06 %"),
                         childAtPosition(
                                 childAtPosition(
-                                        withId(R.id.layoutInfoo),
+                                        IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
                                         0),
-                                0),
+                                1),
                         isDisplayed()));
-        textView4.check(matches(withText("Lisbon")));
+        textView2.check(matches(isDisplayed()));
 
     }
 

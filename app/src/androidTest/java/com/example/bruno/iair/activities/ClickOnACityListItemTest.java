@@ -1,6 +1,7 @@
 package com.example.bruno.iair.activities;
 
 
+import android.support.test.espresso.DataInteraction;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
@@ -19,41 +20,67 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static android.support.test.espresso.Espresso.onData;
 import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.withClassName;
+import static android.support.test.espresso.matcher.ViewMatchers.withContentDescription;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.anything;
+import static org.hamcrest.Matchers.is;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class HumidityInDashBoardExists {
+public class ClickOnACityListItemTest {
 
     @Rule
     public ActivityTestRule<DashBoardActivity> mActivityTestRule = new ActivityTestRule<>(DashBoardActivity.class);
 
     @Test
-    public void humidityInDashBoardExists() {
-        ViewInteraction textView = onView(
-                allOf(withId(R.id.textViewCityHumidity), withText("Humidity: "),
+    public void clickOnACityListItem() {
+        ViewInteraction actionMenuItemView = onView(
+                allOf(withId(R.id.btnCity), withContentDescription("btnCity"),
                         childAtPosition(
                                 childAtPosition(
-                                        IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
-                                        0),
-                                0),
-                        isDisplayed()));
-        textView.check(matches(withText("Humidity: ")));
-
-        ViewInteraction textView2 = onView(
-                allOf(withId(R.id.textViewHumidityData), withText("30.0 %"),
-                        childAtPosition(
-                                childAtPosition(
-                                        IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
-                                        0),
+                                        withId(R.id.main_toolbar),
+                                        1),
                                 1),
                         isDisplayed()));
-        textView2.check(matches(isDisplayed()));
+        actionMenuItemView.perform(click());
+
+        DataInteraction linearLayout = onData(anything())
+                .inAdapterView(allOf(withId(R.id.cityList),
+                        childAtPosition(
+                                withClassName(is("android.widget.LinearLayout")),
+                                2)))
+                .atPosition(1);
+        linearLayout.perform(click());
+
+        ViewInteraction textView = onView(
+                allOf(withId(R.id.txtCityName), withText("Leiria"),
+                        childAtPosition(
+                                allOf(withId(R.id.layoutInfo),
+                                        childAtPosition(
+                                                IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
+                                                1)),
+                                0),
+                        isDisplayed()));
+        textView.check(matches(isDisplayed()));
+
+        ViewInteraction checkBox = onView(
+                allOf(withId(R.id.chkFavorite),
+                        childAtPosition(
+                                allOf(withId(R.id.layoutInfo),
+                                        childAtPosition(
+                                                IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
+                                                1)),
+                                1),
+                        isDisplayed()));
+        checkBox.check(matches(isDisplayed()));
 
     }
 

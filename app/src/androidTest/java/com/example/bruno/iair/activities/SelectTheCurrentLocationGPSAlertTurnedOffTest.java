@@ -14,7 +14,6 @@ import com.example.bruno.iair.R;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,13 +31,13 @@ import static org.hamcrest.Matchers.is;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class SelectTheCurrentLocationGPSAlertTurnedOn {
+public class SelectTheCurrentLocationGPSAlertTurnedOffTest {
 
     @Rule
     public ActivityTestRule<DashBoardActivity> mActivityTestRule = new ActivityTestRule<>(DashBoardActivity.class);
 
     @Test
-    public void selectTheCurrentLocationGPSAlertTurnedOn() {
+    public void selectTheCurrentLocationGPSAlertTurnedOff() {
         ViewInteraction actionMenuItemView = onView(
                 allOf(withId(R.id.btnCity), withContentDescription("btnCity"),
                         childAtPosition(
@@ -60,26 +59,25 @@ public class SelectTheCurrentLocationGPSAlertTurnedOn {
         appCompatButton.perform(click());
 
         ViewInteraction textView = onView(
-                allOf(withId(R.id.txtCityName), withText("Leiria"),
+                allOf(withId(R.id.alertTitle), withText("Enable Location"),
                         childAtPosition(
-                                allOf(withId(R.id.layoutInfo),
+                                allOf(withId(R.id.title_template),
                                         childAtPosition(
-                                                IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
-                                                1)),
+                                                withId(R.id.topPanel),
+                                                0)),
                                 0),
                         isDisplayed()));
-        textView.check(matches(isDisplayed()));
+        textView.check(matches(withText("Enable Location")));
 
-        ViewInteraction checkBox = onView(
-                allOf(withId(R.id.chkFavorite),
+        ViewInteraction button = onView(
+                allOf(withId(android.R.id.button1),
                         childAtPosition(
-                                allOf(withId(R.id.layoutInfo),
-                                        childAtPosition(
-                                                IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
-                                                1)),
+                                childAtPosition(
+                                        withId(R.id.buttonPanel),
+                                        0),
                                 1),
                         isDisplayed()));
-        checkBox.check(matches(isDisplayed()));
+        button.check(matches(isDisplayed()));
 
     }
 

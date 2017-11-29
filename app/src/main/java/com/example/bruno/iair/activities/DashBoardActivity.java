@@ -93,12 +93,10 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     private CheckBox checkFavorite;
     private LinearLayout layoutInfo;
     private ListView listViewOfCities;
-    private SearchView searchView;
     private ArrayAdapter<City> adapter;
     private ArrayAdapter<Event> adapterEvents;
     public static String citiesURL;
     public static String countriesURL;
-    public static String phonesensorsURL;
     private SwipeRefreshLayout swipeRefresh;
 
     private SensorManager mSensorManager;
@@ -124,7 +122,6 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
 
         citiesURL = "https://api.thingspeak.com/channels/371900/feeds.json?api_key=ADDXWHYRJNAY95LZ";
         countriesURL = "https://api.thingspeak.com/channels/369386/feeds.json?api_key=EH9WYNAGVS2EDGNS";
-        phonesensorsURL = "https://api.thingspeak.com/channels/373891/feeds.json?api_key=VC0UA9ODEMHK7APY";
 
         SharedPreferences sharedPrefs = getSharedPreferences("username", MODE_PRIVATE);
         if (!sharedPrefs.contains("user")){
@@ -211,15 +208,6 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cityTemperature.setText("Temperature: ");
         cityHumidity.setText("Humidity: ");
 
-
-        try {
-            getSensorDataFromThinkSpeak();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
         cityOzone.setText("O3: ");
         cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
         cityCarbonMonoxide.setText("CO2: ");
@@ -276,17 +264,14 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cityName.setText(favoriteCity.getName());
         cityTemperature.setText("Temperature: ");
         cityHumidity.setText("Humidity: ");
-        try {
-            getSensorDataFromThinkSpeak();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
 
         cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
         cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + "");
         cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + "");
+
+        cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
+        cityHumidityData.setText(favoriteCity.getHumidity() + " %");
+
         if(hasTempSensor()){
             cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
         }
@@ -297,6 +282,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
         listViewOfEvents.setAdapter(adapterEvents);
         listViewOfEvents.setTextFilterEnabled(true);
+        cityAirQualityDate.setText(favoriteCity.getDate());
 
     }
 
@@ -409,16 +395,6 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
 
     }
 
-    public void getSensorDataFromThinkSpeak() throws IOException, JSONException {
-        //de momento mostra apenas os ultimos dados de sensores que foram eviados para a plataforma independentemente da cidade
-        //TODO mostrar os ultimos dados de sensores da cidade que o utilizador está a visualizar!
-        JSONObject jsonObject = getJSONObjectFromURL(phonesensorsURL);
-        int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
-        int i=last;
-
-        cityTemperatureData.setText(jsonObject.getJSONArray("feeds").getJSONObject(i-1).getString("field4") + " ºC");
-        cityHumidityData.setText(jsonObject.getJSONArray("feeds").getJSONObject(i-1).getString("field5") + " %");
-    }
 
 
     @Override

@@ -20,51 +20,38 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static android.support.test.espresso.matcher.ViewMatchers.withClassName;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.is;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class ShowInfoFromSensorsOnDashBoard {
+public class HumidityInDashBoardExistsTest {
 
     @Rule
     public ActivityTestRule<DashBoardActivity> mActivityTestRule = new ActivityTestRule<>(DashBoardActivity.class);
 
     @Test
-    public void showInfoFromSensorsOnDashBoard() {
-        ViewInteraction appCompatButton = onView(
-                allOf(withId(R.id.btnCurrentLocation), withText("Current Location"),
+    public void humidityInDashBoardExists() {
+        ViewInteraction textView = onView(
+                allOf(withId(R.id.textViewCityHumidity), withText("Humidity: "),
                         childAtPosition(
                                 childAtPosition(
-                                        withClassName(is("android.widget.RelativeLayout")),
+                                        IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
                                         0),
                                 0),
                         isDisplayed()));
-        appCompatButton.perform(click());
-
-        ViewInteraction textView = onView(
-                allOf(withId(R.id.textViewCityTemperatureDataUser), withText(" | 20.82 ?C"),
-                        childAtPosition(
-                                childAtPosition(
-                                        IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
-                                        0),
-                                2),
-                        isDisplayed()));
-        textView.check(matches(isDisplayed()));
+        textView.check(matches(withText("Humidity: ")));
 
         ViewInteraction textView2 = onView(
-                allOf(withId(R.id.textViewCityHumidityDataUser), withText(" | 78.9 %"),
+                allOf(withId(R.id.textViewHumidityData), withText("30.0 %"),
                         childAtPosition(
                                 childAtPosition(
                                         IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
                                         0),
-                                2),
+                                1),
                         isDisplayed()));
         textView2.check(matches(isDisplayed()));
 

@@ -14,6 +14,7 @@ import com.example.bruno.iair.R;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.hamcrest.core.IsInstanceOf;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,7 +24,6 @@ import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withClassName;
-import static android.support.test.espresso.matcher.ViewMatchers.withContentDescription;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
@@ -31,53 +31,42 @@ import static org.hamcrest.Matchers.is;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class SelectTheCurrentLocationGPSAlertTurnedOff {
+public class ShowInfoFromSensorsOnDashBoardTest {
 
     @Rule
     public ActivityTestRule<DashBoardActivity> mActivityTestRule = new ActivityTestRule<>(DashBoardActivity.class);
 
     @Test
-    public void selectTheCurrentLocationGPSAlertTurnedOff() {
-        ViewInteraction actionMenuItemView = onView(
-                allOf(withId(R.id.btnCity), withContentDescription("btnCity"),
-                        childAtPosition(
-                                childAtPosition(
-                                        withId(R.id.main_toolbar),
-                                        1),
-                                1),
-                        isDisplayed()));
-        actionMenuItemView.perform(click());
-
+    public void showInfoFromSensorsOnDashBoard() {
         ViewInteraction appCompatButton = onView(
                 allOf(withId(R.id.btnCurrentLocation), withText("Current Location"),
                         childAtPosition(
                                 childAtPosition(
-                                        withClassName(is("android.widget.LinearLayout")),
-                                        3),
+                                        withClassName(is("android.widget.RelativeLayout")),
+                                        0),
                                 0),
                         isDisplayed()));
         appCompatButton.perform(click());
 
         ViewInteraction textView = onView(
-                allOf(withId(R.id.alertTitle), withText("Enable Location"),
-                        childAtPosition(
-                                allOf(withId(R.id.title_template),
-                                        childAtPosition(
-                                                withId(R.id.topPanel),
-                                                0)),
-                                0),
-                        isDisplayed()));
-        textView.check(matches(withText("Enable Location")));
-
-        ViewInteraction button = onView(
-                allOf(withId(android.R.id.button1),
+                allOf(withId(R.id.textViewCityTemperatureDataUser), withText(" | 20.82 ?C"),
                         childAtPosition(
                                 childAtPosition(
-                                        withId(R.id.buttonPanel),
+                                        IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
                                         0),
-                                1),
+                                2),
                         isDisplayed()));
-        button.check(matches(isDisplayed()));
+        textView.check(matches(isDisplayed()));
+
+        ViewInteraction textView2 = onView(
+                allOf(withId(R.id.textViewCityHumidityDataUser), withText(" | 78.9 %"),
+                        childAtPosition(
+                                childAtPosition(
+                                        IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
+                                        0),
+                                2),
+                        isDisplayed()));
+        textView2.check(matches(isDisplayed()));
 
     }
 

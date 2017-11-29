@@ -10,11 +10,19 @@ import android.hardware.SensorManager;
 public class SensorsData {
 
     /*DEFINE VARS*/
-    private SensorManager mSensorManager;
-    private Sensor mHumiditySensor;
-    private Sensor mTemperatureSensor;
+    private double temp;
+    private double hum;
 
-    public SensorsData() {
+    public SensorsData(double temp, double hum) {
+        this.temp = temp;
+        this.hum = hum;
     }
 
+    public double getTemp() {
+        return temp;
+    }
+
+    public double getHum() {
+        return hum;
+    }
 }

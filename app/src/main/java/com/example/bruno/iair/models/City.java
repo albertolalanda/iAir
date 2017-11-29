@@ -48,6 +48,8 @@ public class City {
         this.events = new LinkedList<Event>();
         this.airQualityHistory = new LinkedList<AirQualityData>();
         this.sensorsDataHistory = new LinkedList<SensorsData>();
+        this.sensorsDataHistory.add(new SensorsData(0,0));
+        this.airQualityHistory.add(new AirQualityData(0,0,0,new TDate("2017-05-16T01:03:48Z")));
     }
     public boolean isFavorite() {
         return isFavorite;
@@ -107,29 +109,27 @@ public class City {
 
 
     public double getTemperature() {
-        //TODO
-        return 0;
+        return sensorsDataHistory.get(sensorsDataHistory.size() - 1).getTemp();
     }
 
     public double getHumidity() {
-        //TODO
-        return 0;
+        return sensorsDataHistory.get(sensorsDataHistory.size() - 1).getHum();
     }
 
     public double getOzoneO3() {
-        return airQualityHistory.get(0).getOzoneO3();
+        return airQualityHistory.get(airQualityHistory.size() - 1).getOzoneO3();
     }
 
     public double getCarbonMonoxideCO() {
-        return airQualityHistory.get(0).getCarbonMonoxideCO();
+        return airQualityHistory.get(airQualityHistory.size() - 1).getCarbonMonoxideCO();
     }
 
     public double getNitrogenDioxideNO2() {
-        return airQualityHistory.get(0).getNitrogenDioxideNO2();
+        return airQualityHistory.get(airQualityHistory.size() - 1).getNitrogenDioxideNO2();
     }
 
     public String getDate() {
-        return airQualityHistory.get(0).getDate().toString();
+        return airQualityHistory.get(airQualityHistory.size() - 1).getDate().toString();
     }
 
 
@@ -163,6 +163,7 @@ public class City {
     public void updateData() throws IOException, JSONException {
         updateAirQualityHistory();
         updateCityEvents();
+        updateDataFromCitySensors();
     }
 
     public void updateAirQualityHistory(){
@@ -183,6 +184,34 @@ public class City {
                             Double.parseDouble( jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field4") ),
                             Double.parseDouble( jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field3") ),
                             new TDate(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("created_at"))
+                    ));
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateDataFromCitySensors() throws IOException, JSONException {
+        try{
+            String sensorsURL = "https://api.thingspeak.com/channels/373891/feeds.json?api_key=VC0UA9ODEMHK7APY";
+            JSONObject jsonObject = getJSONObjectFromURL(sensorsURL);
+
+            //System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field1"));
+
+            //System.out.println("******"+ this.name +"******");
+            // Last entry id:
+            int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
+
+            for (int i=0; i<last; i++){
+                //System.out.println("---->" + jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"));
+                if(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1").equals(this.name)){
+                    sensorsDataHistory.add(new SensorsData(
+                            Double.parseDouble( jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field4") ),
+                            Double.parseDouble( jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field5") )
                     ));
                 }
             }
