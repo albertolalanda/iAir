@@ -108,7 +108,6 @@ public class SensorDataActivity extends AppCompatActivity implements AdapterView
                 }
             }
         });
-
         temp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -122,7 +121,6 @@ public class SensorDataActivity extends AppCompatActivity implements AdapterView
                 }
             }
         });
-
         hum.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

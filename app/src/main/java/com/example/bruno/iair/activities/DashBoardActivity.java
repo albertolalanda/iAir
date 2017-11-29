@@ -76,8 +76,12 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     private TextView cityAQI;
     private TextView cityTemperature;
     private TextView cityTemperatureData;
+    private TextView cityTemperatureUser;
+    private TextView cityTemperatureDataUser;
     private TextView cityHumidity;
     private TextView cityHumidityData;
+    private TextView cityHumidityUser;
+    private TextView cityHumidityDataUser;
     private TextView cityOzone;
     private TextView cityOzoneData;
     private TextView cityCarbonMonoxide;
@@ -142,10 +146,16 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cityName = findViewById(R.id.textViewCityName);
         cityAQI = findViewById(R.id.textViewAQI);
         linearLayoutAQI = findViewById(R.id.linearLayoutAQI);
+
         cityTemperature = findViewById(R.id.textViewCityTemperature);
         cityTemperatureData = findViewById(R.id.textViewTemperatureData);
+        cityTemperatureUser = findViewById(R.id.textViewCityTemperatureUser);
+        cityTemperatureDataUser = findViewById(R.id.textViewCityTemperatureDataUser);
         cityHumidity = findViewById(R.id.textViewCityHumidity);
         cityHumidityData = findViewById(R.id.textViewHumidityData);
+        cityHumidityUser = findViewById(R.id.textViewCityHumidityUser);
+        cityHumidityDataUser = findViewById(R.id.textViewCityHumidityDataUser);
+
         cityOzone = findViewById(R.id.textViewCityOzone);
         cityOzoneData = findViewById(R.id.textViewOzoneData);
         cityCarbonMonoxide = findViewById(R.id.textViewCarbonMonoxide);
@@ -194,10 +204,12 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cityName.setText(favoriteCity.getName());
         linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
         cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
+
         cityTemperature.setText("Temperature: ");
         cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
         cityHumidity.setText("Humidity: ");
         cityHumidityData.setText(favoriteCity.getHumidity() + " %");
+
         cityOzone.setText("O3: ");
         cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
         cityCarbonMonoxide.setText("CO2: ");
@@ -229,21 +241,22 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                 startActivity(appInfo);
             }
         });
-        PackageManager manager = getPackageManager();
-        boolean hasTempSensor = manager.hasSystemFeature(PackageManager.FEATURE_SENSOR_AMBIENT_TEMPERATURE);
-        boolean hasHumSensor = manager.hasSystemFeature(PackageManager.FEATURE_SENSOR_RELATIVE_HUMIDITY);
-        if(!hasTempSensor && !hasHumSensor){
+
+
+
+        if(!hasTempSensor() && !hasHumSensor()){
             send.setEnabled(false);
         }else{
             mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
             mTemperature = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
             mHumidity = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+
+
         }
     }
 
     @Override
     public void onRefresh() {
-        Toast.makeText(this, "oi", Toast.LENGTH_SHORT).show();
         try {
             atualizarLista();
         } catch (IOException e) {
@@ -251,6 +264,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
         new Handler().postDelayed(new Runnable() {
             @Override public void run() {
                 swipeRefresh.setRefreshing(false);
@@ -313,6 +327,9 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             cities.add(new City(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"), findCountryWithID(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field3")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field4"))));
         }
 
+        //FIX TEMPORARIO
+        //CITY GPS NAO APARECE NA LISTA ??? niceee
+        cities.add(new City("GPS", new Country("GPS", "9999"), 0, 0));
         //System.out.println(cities);
 
 
@@ -475,13 +492,6 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            try {
-                atualizarLista();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
         }else if(resultCode==RESULT_CANCELED){
             finish();
         }
@@ -507,6 +517,15 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cityNitrogenDioxide.setText("NO2: ");
         cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + "");
 
+
+        if(hasTempSensor()){
+            cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
+            cityTemperatureUser.setText("(this device) ");
+        }
+        if(hasHumSensor()){
+            cityHumidityDataUser.setText(" | " + getHum() + " %");
+            cityHumidityUser.setText("(this device) ");
+        }
 
         listViewOfEvents = findViewById(R.id.LVEventList);
         adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
@@ -549,9 +568,9 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_AMBIENT_TEMPERATURE){
-            ambientTemperature = event.values[0];
+            ambientTemperature = (float) roundOff(event.values[0]);
         }else if(event.sensor.getType() == Sensor.TYPE_RELATIVE_HUMIDITY){
-            relativeHumidity = event.values[0];
+            relativeHumidity = (float) roundOff(event.values[0]);
         }
     }
 
@@ -569,6 +588,14 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         if(mHumidity!=null){
             mSensorManager.registerListener(this, mHumidity, SensorManager.SENSOR_DELAY_NORMAL);
         }
+        if(hasTempSensor()){
+            cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
+            cityTemperatureUser.setText(" (this device) ");
+        }
+        if(hasHumSensor()){
+            cityHumidityDataUser.setText(" | " + getHum() + " %");
+            cityHumidityUser.setText(" (this device) ");
+        }
     }
 
     @Override
@@ -580,6 +607,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
 
     }
 
+    //humidade em g/m3 atualmente não é usado
     public double calculateAbsoluteHumidity(){
         return (216.7 *
                 (relativeHumidity /
@@ -603,4 +631,15 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     public static double getLat() {
         return lat;
     }
+
+    public boolean hasTempSensor(){
+        PackageManager manager = getPackageManager();
+        return manager.hasSystemFeature(PackageManager.FEATURE_SENSOR_AMBIENT_TEMPERATURE);
+    }
+
+    public boolean hasHumSensor(){
+        PackageManager manager = getPackageManager();
+        return manager.hasSystemFeature(PackageManager.FEATURE_SENSOR_RELATIVE_HUMIDITY);
+    }
+
 }
