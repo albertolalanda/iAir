@@ -228,9 +228,9 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             Intent appInfo = new Intent(DashBoardActivity.this, SelectFavoriteCityActivity.class);
             startActivityForResult(appInfo,REQUEST_FAV);
         }
-        Button send = findViewById(R.id.sendDataBtn);
-        send.setOnClickListener(new View.OnClickListener() {
-
+        //SEND SENSOR DATA
+        Button sendSensorData = findViewById(R.id.sendDataBtn);
+        sendSensorData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent appInfo = new Intent(DashBoardActivity.this, SensorDataActivity.class);
@@ -240,15 +240,25 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             }
         });
 
-
-
         if(!hasTempSensor() && !hasHumSensor()){
-            send.setEnabled(false);
+            sendSensorData.setEnabled(false);
         }else{
             mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
             mTemperature = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
             mHumidity = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
         }
+
+        //SEND EVENTS DATA
+        Button sendEventsData = findViewById(R.id.sendEventsBtn);
+        sendEventsData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent appEventsInfo = new Intent(DashBoardActivity.this, EventsDataActivity.class);
+                String data = favoriteCity.getName();
+                appEventsInfo.putExtra("city", data);
+                startActivity(appEventsInfo);
+            }
+        });
     }
 
 
