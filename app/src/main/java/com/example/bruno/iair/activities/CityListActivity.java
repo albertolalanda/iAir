@@ -265,7 +265,7 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
 
 
 
-    private City currentLocation(){
+    public City currentLocation(){
         GPSTracker gps = new GPSTracker(this);
 
         City nearestCity = null;
@@ -298,10 +298,6 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
         }
 
         Toast.makeText(CityListActivity.this, "Nearest City is " + nearestCity.getName() + " " +roundOff(kmNearest) +"km away...", Toast.LENGTH_LONG).show();
-
-
-
-
         return nearestCity;
 
     }

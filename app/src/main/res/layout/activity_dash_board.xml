@@ -230,8 +230,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
-                    android:text="TextView"
-                    android:textSize="18sp" />
+                    android:textSize="18sp"
+                    tools:text="TextView" />
 
                 <TextView
                     android:id="@+id/textViewTemperatureData"
@@ -273,8 +273,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
-                    android:text="TextView"
-                    android:textSize="18sp" />
+                    android:textSize="18sp"
+                    tools:text="TextView" />
 
                 <TextView
                     android:id="@+id/textViewHumidityData"

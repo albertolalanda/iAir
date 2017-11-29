@@ -98,6 +98,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     private ArrayAdapter<Event> adapterEvents;
     public static String citiesURL;
     public static String countriesURL;
+    public static String phonesensorsURL;
     private SwipeRefreshLayout swipeRefresh;
 
     private SensorManager mSensorManager;
@@ -123,6 +124,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
 
         citiesURL = "https://api.thingspeak.com/channels/371900/feeds.json?api_key=ADDXWHYRJNAY95LZ";
         countriesURL = "https://api.thingspeak.com/channels/369386/feeds.json?api_key=EH9WYNAGVS2EDGNS";
+        phonesensorsURL = "https://api.thingspeak.com/channels/373891/feeds.json?api_key=VC0UA9ODEMHK7APY";
 
         SharedPreferences sharedPrefs = getSharedPreferences("username", MODE_PRIVATE);
         if (!sharedPrefs.contains("user")){
@@ -185,6 +187,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
         //cities.get(1).setFavorite(true);
 
         favoriteCity = City.getFavoriteCity(cities);
@@ -206,9 +209,16 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
 
         cityTemperature.setText("Temperature: ");
-        cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
         cityHumidity.setText("Humidity: ");
-        cityHumidityData.setText(favoriteCity.getHumidity() + " %");
+
+
+        try {
+            getSensorDataFromThinkSpeak();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         cityOzone.setText("O3: ");
         cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
@@ -250,9 +260,72 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
             mTemperature = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
             mHumidity = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
-
-
         }
+    }
+
+
+    private void atualizarLista() throws IOException, JSONException {
+        favoriteCity = City.getFavoriteCity(cities);
+        System.out.println(favoriteCity);
+        if(favoriteCity.getName().equals("GPS")){
+            favoriteCity=currentLocation();
+        }
+        favoriteCity.updateData();
+        linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
+        cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
+        cityName.setText(favoriteCity.getName());
+        cityTemperature.setText("Temperature: ");
+        cityHumidity.setText("Humidity: ");
+        try {
+            getSensorDataFromThinkSpeak();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
+        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + "");
+        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + "");
+        if(hasTempSensor()){
+            cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
+        }
+        if(hasHumSensor()){
+            cityHumidityDataUser.setText(" | " + getHum() + " %");
+        }
+        listViewOfEvents = findViewById(R.id.LVEventList);
+        adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
+        listViewOfEvents.setAdapter(adapterEvents);
+        listViewOfEvents.setTextFilterEnabled(true);
+
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(mTemperature!=null){
+            mSensorManager.registerListener(this, mTemperature, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if(mHumidity!=null){
+            mSensorManager.registerListener(this, mHumidity, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        new Handler().postDelayed(new Runnable() {
+            @Override public void run() {
+                if(hasTempSensor()){
+                    //este delayed run é necessário porque se o sensor for
+                    // medido imediatamente quando a app inicia os valores vão estar a 0
+                            cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
+                            cityTemperatureUser.setText(" (this device) ");
+                }
+                if(hasHumSensor()){
+                    //estes runnables não atrazam o iniciar da app e são executados apenas depois de o utilizador
+                    //estar a ver toda a UI devido a estarem dentro de um OnResume();
+                        cityHumidityDataUser.setText(" | " + getHum() + " %");
+                        cityHumidityUser.setText(" (this device) ");
+                }
+            }
+        }, 1000);
     }
 
     @Override
@@ -271,6 +344,8 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             }
         }, 1500);
     }
+
+
 
 
     public static LinkedList<City> getCities() {
@@ -332,8 +407,17 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cities.add(new City("GPS", new Country("GPS", "9999"), 0, 0));
         //System.out.println(cities);
 
+    }
 
+    public void getSensorDataFromThinkSpeak() throws IOException, JSONException {
+        //de momento mostra apenas os ultimos dados de sensores que foram eviados para a plataforma independentemente da cidade
+        //TODO mostrar os ultimos dados de sensores da cidade que o utilizador está a visualizar!
+        JSONObject jsonObject = getJSONObjectFromURL(phonesensorsURL);
+        int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
+        int i=last;
 
+        cityTemperatureData.setText(jsonObject.getJSONArray("feeds").getJSONObject(i-1).getString("field4") + " ºC");
+        cityHumidityData.setText(jsonObject.getJSONArray("feeds").getJSONObject(i-1).getString("field5") + " %");
     }
 
 
@@ -497,43 +581,6 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         }
     }
 
-    private void atualizarLista() throws IOException, JSONException {
-        favoriteCity = City.getFavoriteCity(cities);
-        if(favoriteCity.getName().equals("GPS")){
-            favoriteCity=currentLocation();
-        }
-        favoriteCity.updateData();
-        linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
-        cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
-        cityName.setText(favoriteCity.getName());
-        cityTemperature.setText("Temperature: ");
-        cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
-        cityHumidity.setText("Humidity: ");
-        cityHumidityData.setText(favoriteCity.getHumidity() + " %");
-        cityOzone.setText("O3: ");
-        cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
-        cityCarbonMonoxide.setText("CO: ");
-        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + "");
-        cityNitrogenDioxide.setText("NO2: ");
-        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + "");
-
-
-        if(hasTempSensor()){
-            cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
-            cityTemperatureUser.setText("(this device) ");
-        }
-        if(hasHumSensor()){
-            cityHumidityDataUser.setText(" | " + getHum() + " %");
-            cityHumidityUser.setText("(this device) ");
-        }
-
-        listViewOfEvents = findViewById(R.id.LVEventList);
-        adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
-        listViewOfEvents.setAdapter(adapterEvents);
-        listViewOfEvents.setTextFilterEnabled(true);
-
-    }
-
     public static JSONObject getJSONObjectFromURL(String urlString) throws IOException, JSONException {
         HttpURLConnection urlConnection = null;
         URL url = new URL(urlString);
@@ -579,24 +626,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
 
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if(mTemperature!=null){
-            mSensorManager.registerListener(this, mTemperature, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-        if(mHumidity!=null){
-            mSensorManager.registerListener(this, mHumidity, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-        if(hasTempSensor()){
-            cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
-            cityTemperatureUser.setText(" (this device) ");
-        }
-        if(hasHumSensor()){
-            cityHumidityDataUser.setText(" | " + getHum() + " %");
-            cityHumidityUser.setText(" (this device) ");
-        }
-    }
+
 
     @Override
     protected void onPause() {
