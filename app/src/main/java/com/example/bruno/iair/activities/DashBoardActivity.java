@@ -90,7 +90,6 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     private TextView cityAirQualityDate;
     private TextView cityNitrogenDioxideData;
     private ListView listViewOfEvents;
-    private CheckBox checkFavorite;
     private LinearLayout layoutInfo;
     private ListView listViewOfCities;
     private ArrayAdapter<City> adapter;
@@ -162,7 +161,6 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cityNitrogenDioxide = findViewById(R.id.textViewNitrogenDioxide);
         cityNitrogenDioxideData = findViewById(R.id.textViewNitrogenMonoxideData);
         cityAirQualityDate = findViewById(R.id.textViewAirQualityDate);
-        checkFavorite = findViewById(R.id.checkBoxFavorite);
         layoutInfo = findViewById(R.id.layoutInfoo);
         listViewOfCities = findViewById(R.id.cityList);
         adapter = new ArrayAdapter<City>(this, android.R.layout.simple_list_item_1, cities);
@@ -221,9 +219,6 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             listViewOfEvents.setAdapter(adapterEvents);
             listViewOfEvents.setTextFilterEnabled(true);
 
-            if (favoriteCity.isFavorite()) {
-                checkFavorite.setChecked(true);
-            }
         }else{
             Intent appInfo = new Intent(DashBoardActivity.this, SelectFavoriteCityActivity.class);
             startActivityForResult(appInfo,REQUEST_FAV);
