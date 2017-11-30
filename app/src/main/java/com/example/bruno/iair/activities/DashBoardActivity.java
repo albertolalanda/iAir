@@ -287,8 +287,6 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             cityHumidityDataUser.setText(" | " + getHum() + " %");
         }
         listViewOfEvents = findViewById(R.id.LVEventList);
-
-
         adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
         listViewOfEvents.setAdapter(adapterEvents);
         listViewOfEvents.setTextFilterEnabled(true);
