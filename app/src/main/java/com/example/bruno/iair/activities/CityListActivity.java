@@ -406,6 +406,9 @@ public class CityListActivity extends AppCompatActivity implements AdapterView.O
                 setResult(RESULT_OK);
                 this.finish();
                 break;
+            case R.id.btnSettings:
+                Intent settingsIntent = new Intent(CityListActivity.this, SettingsActivity.class);
+                startActivityForResult(settingsIntent, REQUEST_FAV);
             default:
         }
 

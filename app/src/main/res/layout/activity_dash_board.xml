@@ -55,16 +55,6 @@
                     android:textSize="30sp"
                     tools:text="cityname" />
 
-                <CheckBox
-                    android:id="@+id/checkBoxFavorite"
-                    style="@android:style/Widget.Holo.CompoundButton.CheckBox"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:button="@drawable/favorite"
-                    android:clickable="false"
-                    android:textAlignment="viewStart"
-                    tools:text="favorite" />
-
             </LinearLayout>
 
             <LinearLayout
@@ -340,7 +330,7 @@
                 <ListView
                     android:id="@+id/LVEventList"
                     android:layout_width="match_parent"
-                    android:layout_height="69dp"
+                    android:layout_height="98dp"
                     android:overScrollMode="ifContentScrolls"
                     android:scrollbars="vertical">
 
