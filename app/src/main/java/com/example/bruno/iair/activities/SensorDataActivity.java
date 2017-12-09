@@ -52,6 +52,8 @@ public class SensorDataActivity extends AppCompatActivity implements AdapterView
     private Button send;
     private float tempData;
     private float humData;
+    private float tempDataAux;
+    private float humDataAux;
     private City city;
     private double lon;
     private double lat;
@@ -66,6 +68,7 @@ public class SensorDataActivity extends AppCompatActivity implements AdapterView
         cities = DashBoardActivity.getCities();
 
         username=DashBoardActivity.username;
+
 
         //        MAIN_MENU
         Toolbar myToolbar = findViewById(R.id.main_toolbar);
@@ -99,11 +102,15 @@ public class SensorDataActivity extends AppCompatActivity implements AdapterView
             public void onClick(View v) {
                 if(all.isChecked()){
                     temp.setChecked(true);
+                    tempData=tempDataAux;
                     hum.setChecked(true);
+                    humData=humDataAux;
                     send.setEnabled(true);
                 }else{
                     temp.setChecked(false);
+                    tempData=Float.NaN;
                     hum.setChecked(false);
+                    humData=Float.NaN;
                     send.setEnabled(false);
                 }
             }
@@ -114,10 +121,13 @@ public class SensorDataActivity extends AppCompatActivity implements AdapterView
                 if (all.isChecked() && !temp.isChecked()){
                     all.setChecked(false);
                     send.setEnabled(true);
+                    tempData=Float.NaN;
                 }else if(!temp.isChecked() && !hum.isChecked()){
                     send.setEnabled(false);
+                    tempData=Float.NaN;
                 }else if(temp.isChecked()){
                     send.setEnabled(true);
+                    tempData=tempDataAux;
                 }
             }
         });
@@ -126,10 +136,14 @@ public class SensorDataActivity extends AppCompatActivity implements AdapterView
             public void onClick(View v) {
                 if (all.isChecked() && !hum.isChecked()){
                     all.setChecked(false);
+                    send.setEnabled(true);
+                    humData=Float.NaN;
                 }else if(!temp.isChecked() && !hum.isChecked()){
                     send.setEnabled(false);
+                    humData=Float.NaN;
                 }else if(hum.isChecked()){
                     send.setEnabled(true);
+                    humData=humDataAux;
                 }
             }
         });
@@ -142,7 +156,8 @@ public class SensorDataActivity extends AppCompatActivity implements AdapterView
             temp.setEnabled(false);
             tempData=Float.NaN;
         }else{
-            tempData=DashBoardActivity.getTemp();
+            tempDataAux=DashBoardActivity.getTemp();
+            tempData=tempDataAux;
             TextView tempText = findViewById(R.id.tempTextView);
             tempText.setText(String.valueOf(tempData));
         }
@@ -151,9 +166,14 @@ public class SensorDataActivity extends AppCompatActivity implements AdapterView
             hum.setEnabled(false);
             humData=Float.NaN;
         }else{
-            humData=DashBoardActivity.getHum();
+            humDataAux=DashBoardActivity.getHum();
+            humData=humDataAux;
             TextView humText = findViewById(R.id.humTextView);
             humText.setText(String.valueOf(humData));
+        }
+
+        if (!hasTempSensor && !hasHumSensor){
+            all.setEnabled(false);
         }
 
         send.setOnClickListener(new View.OnClickListener() {
