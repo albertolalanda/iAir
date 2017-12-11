@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -48,10 +50,12 @@ public class EventsDataActivity extends AppCompatActivity implements AdapterView
     private TextView textViewOtherEvent;
     private EditText editTextOtherEvent;
     private String eventName;
+    private String messageName;
     private LinearLayout layoutFire;
     private LinearLayout layoutFlood;
     private LinearLayout layoutEarthquake;
     private LinearLayout layoutTsunami;
+    private EditText editTextMessage;
 
 
     @Override
@@ -68,7 +72,7 @@ public class EventsDataActivity extends AppCompatActivity implements AdapterView
         Toolbar myToolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(myToolbar);
 
-        Spinner spinner = findViewById(R.id.citySensorSpinner);
+        final Spinner spinner = findViewById(R.id.citySensorSpinner);
 
         ArrayAdapter<City> cAdapter2 = new ArrayAdapter<City>(this, android.R.layout.simple_list_item_1, cities);
         spinner.setAdapter(cAdapter2);
@@ -89,6 +93,8 @@ public class EventsDataActivity extends AppCompatActivity implements AdapterView
         textViewOtherEvent = findViewById(R.id.textViewOtherEvent);
         editTextOtherEvent = findViewById(R.id.editTextOtherEvent);
         editTextOtherEvent.setEnabled(false);
+        editTextMessage = findViewById(R.id.editMessage);
+        editTextMessage.setEnabled(false);
 
         radioEvent = (RadioGroup) findViewById(R.id.radioEvent);
         radioEvent.clearCheck();
@@ -116,7 +122,9 @@ public class EventsDataActivity extends AppCompatActivity implements AdapterView
                 radioOther.setChecked(false);
                 editTextOtherEvent.setEnabled(false);
                 send.setEnabled(true);
+                editTextMessage.setEnabled(true);
                 eventName = "Fire";
+                editTextMessage.setText("There is a Fire in " + city.getName());
             }
         });
         radioFire.setOnClickListener(new View.OnClickListener() {
@@ -128,7 +136,9 @@ public class EventsDataActivity extends AppCompatActivity implements AdapterView
                 radioOther.setChecked(false);
                 editTextOtherEvent.setEnabled(false);
                 send.setEnabled(true);
+                editTextMessage.setEnabled(true);
                 eventName = "Fire";
+                editTextMessage.setText("There is a Fire in " + city.getName());
             }
         });
         layoutFlood.setOnClickListener(new View.OnClickListener() {
@@ -140,7 +150,9 @@ public class EventsDataActivity extends AppCompatActivity implements AdapterView
                 radioOther.setChecked(false);
                 editTextOtherEvent.setEnabled(false);
                 send.setEnabled(true);
+                editTextMessage.setEnabled(true);
                 eventName = "Flood";
+                editTextMessage.setText("There is a Flood in " + city.getName());
             }
         });
         radioFlood.setOnClickListener(new View.OnClickListener() {
@@ -152,7 +164,9 @@ public class EventsDataActivity extends AppCompatActivity implements AdapterView
                 radioOther.setChecked(false);
                 editTextOtherEvent.setEnabled(false);
                 send.setEnabled(true);
+                editTextMessage.setEnabled(true);
                 eventName = "Flood";
+                editTextMessage.setText("There is a Flood in " + city.getName());
             }
         });
         layoutEarthquake.setOnClickListener(new View.OnClickListener() {
@@ -164,7 +178,9 @@ public class EventsDataActivity extends AppCompatActivity implements AdapterView
                 radioOther.setChecked(false);
                 editTextOtherEvent.setEnabled(false);
                 send.setEnabled(true);
+                editTextMessage.setEnabled(true);
                 eventName = "Earthquake";
+                editTextMessage.setText("There is a Earthquake in " + city.getName());
             }
         });
         radioEarthQuake.setOnClickListener(new View.OnClickListener() {
@@ -176,7 +192,9 @@ public class EventsDataActivity extends AppCompatActivity implements AdapterView
                 radioOther.setChecked(false);
                 editTextOtherEvent.setEnabled(false);
                 send.setEnabled(true);
+                editTextMessage.setEnabled(true);
                 eventName = "Earthquake";
+                editTextMessage.setText("There is a Earthquake in " + city.getName());
             }
         });
         layoutTsunami.setOnClickListener(new View.OnClickListener() {
@@ -188,7 +206,9 @@ public class EventsDataActivity extends AppCompatActivity implements AdapterView
                 radioOther.setChecked(false);
                 editTextOtherEvent.setEnabled(false);
                 send.setEnabled(true);
+                editTextMessage.setEnabled(true);
                 eventName = "Tsunami";
+                editTextMessage.setText("There is a Tsunami in " + city.getName());
             }
         });
         radioTsunami.setOnClickListener(new View.OnClickListener() {
@@ -200,7 +220,9 @@ public class EventsDataActivity extends AppCompatActivity implements AdapterView
                 radioOther.setChecked(false);
                 editTextOtherEvent.setEnabled(false);
                 send.setEnabled(true);
+                editTextMessage.setEnabled(true);
                 eventName = "Tsunami";
+                editTextMessage.setText("There is a Tsunami in " + city.getName());
             }
         });
         radioOther.setOnClickListener(new View.OnClickListener() {
@@ -212,6 +234,23 @@ public class EventsDataActivity extends AppCompatActivity implements AdapterView
                 radioOther.setChecked(true);
                 editTextOtherEvent.setEnabled(true);
                 send.setEnabled(true);
+                editTextMessage.setText(editTextOtherEvent.getText().toString());
+                if(!editTextOtherEvent.getText().toString().trim().isEmpty()){
+                    editTextMessage.setEnabled(true);
+                }else{
+                    editTextMessage.setEnabled(false);
+                }
+            }
+        });
+
+        editTextOtherEvent.addTextChangedListener(new TextWatcher() {
+            public void afterTextChanged(Editable s) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                editTextMessage.setText(s);
+                if(!editTextOtherEvent.getText().toString().trim().isEmpty()){
+                    editTextMessage.setEnabled(true);
+                }
             }
         });
 
@@ -225,13 +264,15 @@ public class EventsDataActivity extends AppCompatActivity implements AdapterView
                         if (radioOther.isChecked()){
                             eventName = editTextOtherEvent.getText().toString();
                         }
+                        messageName = editTextMessage.getText().toString();
                         //collect and send data + gps coordenates from device ...
                         //  field1: "City",
                         //  field2: "Event",
                         //  field3: "Name",
                         String urlString = "https://api.thingspeak.com/update?api_key=6IC9U3VE1R4R44UI&field1=" + city.getName()
                                 + "&field2=" + eventName
-                                + "&field3=" + username;
+                                + "&field3=" + username
+                                + "&field4=" + messageName;
 
                         // Instantiate the RequestQueue.
                         RequestQueue queue = Volley.newRequestQueue(EventsDataActivity.this);
