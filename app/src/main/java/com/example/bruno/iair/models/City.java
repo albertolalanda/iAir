@@ -49,7 +49,7 @@ public class City {
         this.airQualityHistory = new LinkedList<AirQualityData>();
         this.sensorsDataHistory = new LinkedList<SensorsData>();
         this.sensorsDataHistory.add(new SensorsData(0,0));
-        this.airQualityHistory.add(new AirQualityData(0,0,0,new TDate("2017-05-16T01:03:48Z")));
+        this.airQualityHistory.add(new AirQualityData(0,0,0,new TDate("1971-05-16T01:03:48Z")));
     }
     public boolean isFavorite() {
         return isFavorite;
@@ -296,5 +296,7 @@ public class City {
         this.events = events;
     }
 
-
+    public LinkedList<AirQualityData> getAirQualityHistory() {
+        return airQualityHistory;
+    }
 }

@@ -38,4 +38,31 @@ public class TDate {
 
         return day + "/" + month + "/" + year + " " + hour + ":" + minuten;
     }
+    public String toStringCondensed(){
+        return day + "/" + month + "/" + year;
+    }
+
+    public int getYear() {
+        return year;
+    }
+
+    public int getMonth() {
+        return month;
+    }
+
+    public int getDay() {
+        return day;
+    }
+
+    public int getHour() {
+        return hour;
+    }
+
+    public int getMinute() {
+        return minute;
+    }
+
+    public int getSecond() {
+        return second;
+    }
 }

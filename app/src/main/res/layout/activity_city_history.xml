@@ -105,4 +105,19 @@
         </LinearLayout>
 
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/cityData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TableLayout
+            android:id="@+id/DataTable"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </TableLayout>
+
+    </LinearLayout>
 </LinearLayout >
