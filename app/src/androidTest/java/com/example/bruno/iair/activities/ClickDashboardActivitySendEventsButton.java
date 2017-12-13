@@ -15,7 +15,6 @@ import com.example.bruno.iair.R;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +25,7 @@ import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withClassName;
+import static android.support.test.espresso.matcher.ViewMatchers.withContentDescription;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
@@ -34,13 +34,13 @@ import static org.hamcrest.Matchers.is;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class ClickEventsDataActivityBackButtonTest {
+public class ClickDashboardActivitySendEventsButton {
 
     @Rule
     public ActivityTestRule<DashBoardActivity> mActivityTestRule = new ActivityTestRule<>(DashBoardActivity.class);
 
     @Test
-    public void clickEventsDataActivityBackButtonTest() {
+    public void clickDashboardActivitySendEventsButton() {
         DataInteraction linearLayout = onData(anything())
                 .inAdapterView(allOf(withId(R.id.cityList),
                         childAtPosition(
@@ -59,15 +59,25 @@ public class ClickEventsDataActivityBackButtonTest {
                         isDisplayed()));
         appCompatButton.perform(click());
 
-        ViewInteraction imageView = onView(
-                allOf(childAtPosition(
-                        allOf(withId(R.id.layoutFire),
+        ViewInteraction actionMenuItemView = onView(
+                allOf(withId(R.id.btnBack), withContentDescription("Item"),
+                        childAtPosition(
                                 childAtPosition(
-                                        IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
-                                        0)),
-                        0),
+                                        withId(R.id.main_toolbar),
+                                        1),
+                                0),
                         isDisplayed()));
-        imageView.check(matches(isDisplayed()));
+        actionMenuItemView.perform(click());
+
+        ViewInteraction button = onView(
+                allOf(withId(R.id.sendEventsBtn),
+                        childAtPosition(
+                                childAtPosition(
+                                        withId(R.id.layoutInfoo),
+                                        6),
+                                0),
+                        isDisplayed()));
+        button.check(matches(isDisplayed()));
 
     }
 
