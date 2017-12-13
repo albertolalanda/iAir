@@ -34,20 +34,22 @@ import static org.hamcrest.Matchers.is;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class SendEventsActivityChangeCity {
+public class EventCityActivityChooseOtherEvent {
 
     @Rule
     public ActivityTestRule<DashBoardActivity> mActivityTestRule = new ActivityTestRule<>(DashBoardActivity.class);
 
     @Test
-    public void sendEventsActivityChangeCity() {
+    public void eventCityActivityChooseOtherEvent() {
         DataInteraction linearLayout = onData(anything())
                 .inAdapterView(allOf(withId(R.id.cityList),
                         childAtPosition(
                                 withClassName(is("android.widget.LinearLayout")),
                                 1)))
-                .atPosition(0);
+                .atPosition(1);
         linearLayout.perform(click());
+
+
 
         ViewInteraction appCompatButton = onView(
                 allOf(withId(R.id.sendEventsBtn), withText("Send Events"),
@@ -59,43 +61,35 @@ public class SendEventsActivityChangeCity {
                         isDisplayed()));
         appCompatButton.perform(click());
 
-        ViewInteraction textView = onView(
-                allOf(withId(android.R.id.text1), withText("Leiria"),
-                        childAtPosition(
-                                allOf(withId(R.id.citySensorSpinner),
-                                        childAtPosition(
-                                                IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
-                                                0)),
-                                0),
-                        isDisplayed()));
-        textView.check(matches(withText("Leiria")));
-
-
-        ViewInteraction appCompatSpinner = onView(
-                allOf(withId(R.id.citySensorSpinner),
+        ViewInteraction editText = onView(
+                allOf(withId(R.id.editMessage),
                         childAtPosition(
                                 childAtPosition(
-                                        withClassName(is("android.widget.LinearLayout")),
+                                        IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
+                                        2),
+                                1),
+                        isDisplayed()));
+        editText.check(matches(withText("")));
+
+        ViewInteraction linearLayout2 = onView(
+                allOf(withId(R.id.layoutFire),
+                        childAtPosition(
+                                childAtPosition(
+                                        withId(R.id.radioEvent),
                                         0),
                                 0),
                         isDisplayed()));
-        appCompatSpinner.perform(click());
+        linearLayout2.perform(click());
 
-        DataInteraction appCompatTextView = onData(anything())
-                .inAdapterView(withClassName(is("android.support.v7.widget.DropDownListView")))
-                .atPosition(1);
-        appCompatTextView.perform(click());
-
-        ViewInteraction textView3 = onView(
-                allOf(withId(android.R.id.text1), withText("Lisboa"),
+        ViewInteraction editText2 = onView(
+                allOf(withId(R.id.editMessage), withText("There is a Fire in Lisboa"),
                         childAtPosition(
-                                allOf(withId(R.id.citySensorSpinner),
-                                        childAtPosition(
-                                                IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
-                                                0)),
-                                0),
+                                childAtPosition(
+                                        IsInstanceOf.<View>instanceOf(android.widget.LinearLayout.class),
+                                        2),
+                                1),
                         isDisplayed()));
-        textView3.check(matches(withText("Lisboa")));
+        editText2.check(matches(withText("There is a Fire in Lisboa")));
 
     }
 
