@@ -58,6 +58,7 @@ import java.net.URL;
 import java.sql.SQLOutput;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 import static android.view.View.GONE;
@@ -215,9 +216,20 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cityAirQualityDate.setText(favoriteCity.getDate());
 
         listViewOfEvents = findViewById(R.id.LVEventList);
-        adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
-        listViewOfEvents.setAdapter(adapterEvents);
-        listViewOfEvents.setTextFilterEnabled(true);
+        listViewOfEvents.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapter, View view, int position, long arg) {
+                String data = listViewOfEvents.getAdapter().getItem(position).toString();
+
+                Toast.makeText(DashBoardActivity.this, "oiiioiooiioioi", Toast.LENGTH_SHORT).show();
+            /*Intent appInfo = new Intent(CityListActivity.this, CityActivity.class);
+        appInfo.putExtra("city", data);
+        startActivityForResult(appInfo,REQUEST_FAV);*/
+            }
+        });
+        /*adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
+        listViewOfEvents.setAdapter(adapterEvents);*/
+
 
 
         if (favoriteCity.isFavorite()) {
@@ -227,6 +239,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             Intent appInfo = new Intent(DashBoardActivity.this, SelectFavoriteCityActivity.class);
             startActivityForResult(appInfo,REQUEST_FAV);
         }
+
         //SEND SENSOR DATA
         Button sendSensorData = findViewById(R.id.sendDataBtn);
         sendSensorData.setOnClickListener(new View.OnClickListener() {
@@ -258,6 +271,8 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                 startActivity(appEventsInfo);
             }
         });
+
+
     }
 
 
