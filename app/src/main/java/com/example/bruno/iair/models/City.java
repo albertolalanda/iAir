@@ -160,15 +160,15 @@ public class City {
         return new JSONObject(jsonString);
     }
 
-    public void updateData() throws IOException, JSONException {
-        updateAirQualityHistory();
-        updateCityEvents();
-        updateDataFromCitySensors();
+    public void updateData(JSONObject jsonObjectAirQualityData, JSONObject jsonObjectDataCitySensors, JSONObject jsonObjectCityEvents) throws IOException, JSONException {
+        updateAirQualityHistory(jsonObjectAirQualityData);
+        updateCityEvents(jsonObjectCityEvents);
+        updateDataFromCitySensors(jsonObjectDataCitySensors);
     }
 
-    public void updateAirQualityHistory(){
+    public void updateAirQualityHistory(JSONObject jsonObject){
         try{
-            JSONObject jsonObject = this.getJSONObjectFromURL("https://api.thingspeak.com/channels/373908/feeds.json?api_key=IRDG2HB6BC8VG461");
+
 
             //System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field1"));
 
@@ -188,17 +188,14 @@ public class City {
                 }
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    public void updateDataFromCitySensors() throws IOException, JSONException {
+    public void updateDataFromCitySensors(JSONObject jsonObject) throws IOException, JSONException {
         try{
-            String sensorsURL = "https://api.thingspeak.com/channels/373891/feeds.json?api_key=VC0UA9ODEMHK7APY";
-            JSONObject jsonObject = getJSONObjectFromURL(sensorsURL);
+
 
             //System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field1"));
 
@@ -217,16 +214,13 @@ public class City {
                 }
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    public void updateCityEvents() throws IOException, JSONException {
-        String eventsURL = "https://api.thingspeak.com/channels/371908/feeds.json?api_key=1SED3ZW7C4B1A8J2";
-        JSONObject jsonObject = getJSONObjectFromURL(eventsURL);
+    public void updateCityEvents(JSONObject jsonObject) throws IOException, JSONException {
+
         //System.out.println("******Events******");
         // Last entry id:
         int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
@@ -239,6 +233,7 @@ public class City {
                         jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"),
                         jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2"),
                         jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field3"),
+                        jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field4"),
                         new TDate(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("created_at"))
                 ));
             }
@@ -250,7 +245,7 @@ public class City {
 
     public String getAQI(){
         double averagePPM=(double)((this.getOzoneO3() + this.getNitrogenDioxideNO2() + this.getCarbonMonoxideCO()) /3);
-        if(averagePPM<=54)
+        /*if(averagePPM<=54)
             return "Good";
         if(averagePPM<=154)
             return "Moderate";
@@ -261,13 +256,19 @@ public class City {
         if(averagePPM<=424)
             return "Very Unhealthy";
         if(averagePPM<=604||averagePPM>604)
-            return "Hazardous";
-        return "Error";
+            return "Hazardous";*/
+        if(averagePPM<=150)
+            return "Good";
+        if(averagePPM<=300)
+            return "Moderate";
+        if(averagePPM<=450 || averagePPM>450)
+            return "Unhealthy";
+        return "Error. this wasn't supposed to happen!";
     }
 
     public String getColorAQI(){
         double averagePPM=(double)((this.getOzoneO3() + this.getNitrogenDioxideNO2() + this.getCarbonMonoxideCO()) /3);
-        if(averagePPM<=54)
+        /*if(averagePPM<=54)
             return "#4dff4d";
         if(averagePPM<=154)
             return "#ffff33";
@@ -278,7 +279,13 @@ public class City {
         if(averagePPM<=424)
             return "#e600e6";
         if(averagePPM<=604||averagePPM>604)
-            return "#cc0000";
+            return "#cc0000";*/
+        if(averagePPM<=150)
+            return "#82FF82";
+        if(averagePPM<=300)
+            return "#FFFF70";
+        if(averagePPM<=450 || averagePPM>450)
+            return "#FF4747";
         return "#FFFFFF";
     }
 

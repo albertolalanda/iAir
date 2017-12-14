@@ -9,12 +9,14 @@ public class Event {
     private String city;
     private String type;
     private String userId;
+    private String message;
     private TDate date;
 
-    public Event(String city, String type, String userId, TDate date) {
+    public Event(String city, String type, String userId, String message, TDate date) {
         this.city = city;
         this.type = type;
         this.userId = userId;
+        this.message = message;
         this.date = date;
     }
 
@@ -24,6 +26,14 @@ public class Event {
 
     public void setCity(String city) {
         this.city = city;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public String getType() {

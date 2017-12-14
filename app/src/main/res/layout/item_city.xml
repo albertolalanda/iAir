@@ -4,8 +4,7 @@
     android:id="@+id/city_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:descendantFocusability="blocksDescendants"
-    >
+    android:descendantFocusability="blocksDescendants">
 
 
     <TextView
