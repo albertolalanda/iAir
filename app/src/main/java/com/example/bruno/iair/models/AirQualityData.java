@@ -31,6 +31,9 @@ public class AirQualityData {
         return nitrogenDioxideNO2;
     }
 
+    public double getAveragePPM(){
+        return (this.ozoneO3 + this.carbonMonoxideCO + this.getNitrogenDioxideNO2())/3;
+    }
 
     public TDate getDate() {
         return date;

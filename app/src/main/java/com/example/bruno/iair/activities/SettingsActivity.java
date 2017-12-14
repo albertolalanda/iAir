@@ -66,15 +66,26 @@ public class SettingsActivity extends AppCompatActivity {
         saveUsernameBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                username = userEditText.getText().toString();
-                DashBoardActivity.username = username;
-                Toast.makeText(SettingsActivity.this, "User changed ans saved!", Toast.LENGTH_SHORT).show();
-                SharedPreferences sharedPrefs = getSharedPreferences("username", MODE_PRIVATE);
-                SharedPreferences.Editor editor = sharedPrefs.edit();
-                editor.putString("user", username);
-                editor.commit();
-                setResult(RESULT_OK);
-                finish();
+
+                if (!userEditText.getText().toString().trim().isEmpty()){
+                    username = userEditText.getText().toString();
+                    DashBoardActivity.username = username;
+                    Toast.makeText(SettingsActivity.this, "User changed ans saved!", Toast.LENGTH_SHORT).show();
+                    SharedPreferences sharedPrefs = getSharedPreferences("username", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPrefs.edit();
+                    editor.putString("user", username);
+                    editor.commit();
+                    setResult(RESULT_OK);
+                    finish();
+                }
+                else{
+
+                    Toast.makeText(SettingsActivity.this, "The user can't be empty", Toast.LENGTH_SHORT).show();
+
+                }
+
+
+
             }
         });
 
