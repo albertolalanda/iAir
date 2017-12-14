@@ -25,6 +25,7 @@ import com.example.bruno.iair.models.TDate;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
+import com.jjoe64.graphview.series.BarGraphSeries;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -47,9 +48,15 @@ public class CityHistoryActivity extends AppCompatActivity implements AdapterVie
     private TableLayout DataTable;
     private TableLayout TempTable;
     private TableLayout HumTable;
-    private GraphView AQIGraph;
-    private GraphView TempGraph;
-    private GraphView HumGraph;
+    private GraphView AQILineGraph;
+    private GraphView TempLineGraph;
+    private GraphView HumLineGraph;
+    private GraphView AQIBarGraph;
+    private GraphView O3BarGraph;
+    private GraphView COBarGraph;
+    private GraphView NO2BarGraph;
+    private GraphView TempBarGraph;
+    private GraphView HumBarGraph;
     private Spinner spinnerStartDate;
     private Spinner spinnerEndDate;
 
@@ -68,9 +75,16 @@ public class CityHistoryActivity extends AppCompatActivity implements AdapterVie
         TempTable = findViewById(R.id.TempTable);
         HumTable = findViewById(R.id.HumTable);
 
-        AQIGraph = findViewById(R.id.AQIGraph);
-        TempGraph = findViewById(R.id.TempGraph);
-        HumGraph = findViewById(R.id.HumGraph);
+        AQILineGraph = findViewById(R.id.AQILineGraph);
+        TempLineGraph = findViewById(R.id.TempLineGraph);
+        HumLineGraph = findViewById(R.id.HumLineGraph);
+
+        AQIBarGraph = findViewById(R.id.AQIBarGraph);
+        O3BarGraph = findViewById(R.id.O3BarGraph);
+        COBarGraph = findViewById(R.id.COBarGraph);
+        NO2BarGraph = findViewById(R.id.NO2BarGraph);
+        TempBarGraph = findViewById(R.id.TempBarGraph);
+        HumBarGraph = findViewById(R.id.HumBarGraph);
 
         cities = new LinkedList<City>();
         cities = DashBoardActivity.getCities();
@@ -136,59 +150,116 @@ public class CityHistoryActivity extends AppCompatActivity implements AdapterVie
         DataPoint[] dataPointArrayO3 = new DataPoint[listO3.size()];
         listO3.toArray(dataPointArrayO3);
         LineGraphSeries<DataPoint> O3series = new LineGraphSeries<>(dataPointArrayO3);
+        BarGraphSeries<DataPoint> O3Bseries = new BarGraphSeries<>(dataPointArrayO3);
         // styling series
         O3series.setTitle("O3");
         O3series.setColor(Color.BLUE);
         O3series.setDrawDataPoints(true);
         O3series.setDataPointsRadius(10);
         O3series.setThickness(8);
-        AQIGraph.addSeries(O3series);
+        O3Bseries.setTitle("O3");
+        O3Bseries.setColor(Color.BLUE);
+        O3Bseries.setDrawValuesOnTop(true);
+        O3Bseries.setValuesOnTopColor(Color.BLACK);
+        O3Bseries.setSpacing(25);
+        AQILineGraph.addSeries(O3series);
+        O3BarGraph.addSeries(O3Bseries);
 
         DataPoint[] dataPointArrayCO = new DataPoint[listCO.size()];
         listCO.toArray(dataPointArrayCO);
         LineGraphSeries<DataPoint> COseries = new LineGraphSeries<>(dataPointArrayCO);
+        BarGraphSeries<DataPoint> COBseries = new BarGraphSeries<>(dataPointArrayCO);
         // styling series
         COseries.setTitle("CO");
-        COseries.setColor(Color.BLACK);
+        COseries.setColor(Color.RED);
         COseries.setDrawDataPoints(true);
         COseries.setDataPointsRadius(10);
         COseries.setThickness(8);
-        AQIGraph.addSeries(COseries);
+        COBseries.setTitle("CO");
+        COBseries.setColor(Color.RED);
+        COBseries.setDrawValuesOnTop(true);
+        COBseries.setValuesOnTopColor(Color.BLACK);
+        COBseries.setSpacing(25);
+        AQILineGraph.addSeries(COseries);
+        COBarGraph.addSeries(COBseries);
 
         DataPoint[] dataPointArrayNO2 = new DataPoint[listNO2.size()];
         listNO2.toArray(dataPointArrayNO2);
         LineGraphSeries<DataPoint> NO2series = new LineGraphSeries<>(dataPointArrayNO2);
+        BarGraphSeries<DataPoint> NO2Bseries = new BarGraphSeries<>(dataPointArrayNO2);
         // styling series
         NO2series.setTitle("NO2");
         NO2series.setColor(Color.GREEN);
         NO2series.setDrawDataPoints(true);
         NO2series.setDataPointsRadius(10);
         NO2series.setThickness(8);
-        AQIGraph.addSeries(NO2series);
+        NO2Bseries.setTitle("NO2");
+        NO2Bseries.setColor(Color.GREEN);
+        NO2Bseries.setDrawValuesOnTop(true);
+        NO2Bseries.setValuesOnTopColor(Color.BLACK);
+        NO2Bseries.setSpacing(25);
+        AQILineGraph.addSeries(NO2series);
+        NO2BarGraph.addSeries(NO2Bseries);
 
         DataPoint[] dataPointArrayAQI = new DataPoint[listAQI.size()];
         listAQI.toArray(dataPointArrayAQI);
         LineGraphSeries<DataPoint> AQIseries = new LineGraphSeries<>(dataPointArrayAQI);
+        BarGraphSeries<DataPoint> AQIBseries = new BarGraphSeries<>(dataPointArrayAQI);
         // styling series
         AQIseries.setTitle("AQI");
-        AQIseries.setColor(Color.RED);
+        AQIseries.setColor(Color.GRAY);
         AQIseries.setDrawDataPoints(true);
         AQIseries.setDataPointsRadius(10);
         AQIseries.setThickness(8);
-        AQIGraph.addSeries(AQIseries);
+        AQIBseries.setTitle("AQI");
+        AQIBseries.setColor(Color.GRAY);
+        AQIBseries.setDrawValuesOnTop(true);
+        AQIBseries.setValuesOnTopColor(Color.BLACK);
+        AQIBseries.setSpacing(25);
+        AQILineGraph.addSeries(AQIseries);
+        AQIBarGraph.addSeries(AQIBseries);
 
 
-        AQIGraph.getLegendRenderer().setVisible(true);
-        AQIGraph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+        AQILineGraph.getLegendRenderer().setVisible(true);
+        AQILineGraph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+        O3BarGraph.getLegendRenderer().setVisible(true);
+        O3BarGraph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+        COBarGraph.getLegendRenderer().setVisible(true);
+        COBarGraph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+        NO2BarGraph.getLegendRenderer().setVisible(true);
+        NO2BarGraph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+        AQIBarGraph.getLegendRenderer().setVisible(true);
+        AQIBarGraph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
 
         // set date label formatter
-        AQIGraph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), DateFormat.getDateInstance(DateFormat.SHORT, Locale.FRANCE)));
-        AQIGraph.getGridLabelRenderer().setNumHorizontalLabels(3); // only 4 because of the space
+        AQILineGraph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), DateFormat.getDateInstance(DateFormat.SHORT, Locale.FRANCE)));
+        AQILineGraph.getGridLabelRenderer().setNumHorizontalLabels(3); // only 4 because of the space
+        O3BarGraph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), DateFormat.getDateInstance(DateFormat.SHORT, Locale.FRANCE)));
+        O3BarGraph.getGridLabelRenderer().setNumHorizontalLabels(3); // only 4 because of the space
+        COBarGraph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), DateFormat.getDateInstance(DateFormat.SHORT, Locale.FRANCE)));
+        COBarGraph.getGridLabelRenderer().setNumHorizontalLabels(3); // only 4 because of the space
+        NO2BarGraph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), DateFormat.getDateInstance(DateFormat.SHORT, Locale.FRANCE)));
+        NO2BarGraph.getGridLabelRenderer().setNumHorizontalLabels(3); // only 4 because of the space
+        AQIBarGraph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), DateFormat.getDateInstance(DateFormat.SHORT, Locale.FRANCE)));
+        AQIBarGraph.getGridLabelRenderer().setNumHorizontalLabels(3); // only 4 because of the space
+
 
         // set manual x bounds to have nice steps
-        AQIGraph.getViewport().setMinX(dateList.get(0).getTime());
-        AQIGraph.getViewport().setMaxX(dateList.get(dateList.size()-1).getTime());
-        AQIGraph.getViewport().setXAxisBoundsManual(true);
+        AQILineGraph.getViewport().setMinX(dateList.get(0).getTime());
+        AQILineGraph.getViewport().setMaxX(dateList.get(dateList.size()-1).getTime());
+        AQILineGraph.getViewport().setXAxisBoundsManual(true);
+        O3BarGraph.getViewport().setMinX(dateList.get(0).getTime());
+        O3BarGraph.getViewport().setMaxX(dateList.get(dateList.size()-1).getTime());
+        O3BarGraph.getViewport().setXAxisBoundsManual(true);
+        COBarGraph.getViewport().setMinX(dateList.get(0).getTime());
+        COBarGraph.getViewport().setMaxX(dateList.get(dateList.size()-1).getTime());
+        COBarGraph.getViewport().setXAxisBoundsManual(true);
+        NO2BarGraph.getViewport().setMinX(dateList.get(0).getTime());
+        NO2BarGraph.getViewport().setMaxX(dateList.get(dateList.size()-1).getTime());
+        NO2BarGraph.getViewport().setXAxisBoundsManual(true);
+        AQIBarGraph.getViewport().setMinX(dateList.get(0).getTime());
+        AQIBarGraph.getViewport().setMaxX(dateList.get(dateList.size()-1).getTime());
+        AQIBarGraph.getViewport().setXAxisBoundsManual(true);
 
         // set manual y bounds to have nice steps
         //AQIGraph.getViewport().setMinY(0);
@@ -197,7 +268,11 @@ public class CityHistoryActivity extends AppCompatActivity implements AdapterVie
 
         // as we use dates as labels, the human rounding to nice readable numbers
         // is not necessary
-        AQIGraph.getGridLabelRenderer().setHumanRounding(false);
+        AQILineGraph.getGridLabelRenderer().setHumanRounding(false);
+        O3BarGraph.getGridLabelRenderer().setHumanRounding(false);
+        COBarGraph.getGridLabelRenderer().setHumanRounding(false);
+        NO2BarGraph.getGridLabelRenderer().setHumanRounding(false);
+        AQIBarGraph.getGridLabelRenderer().setHumanRounding(false);
 
 
         List<DataPoint> listTemp = new ArrayList<DataPoint>();
@@ -218,56 +293,86 @@ public class CityHistoryActivity extends AppCompatActivity implements AdapterVie
         DataPoint[] dataPointArrayTemp = new DataPoint[listTemp.size()];
         listTemp.toArray(dataPointArrayTemp);
         LineGraphSeries<DataPoint> Tempseries = new LineGraphSeries<>(dataPointArrayTemp);
+        BarGraphSeries<DataPoint> TempBseries = new BarGraphSeries<>(dataPointArrayTemp);
         // styling series
         Tempseries.setTitle("Temperature");
-        Tempseries.setColor(Color.RED);
+        Tempseries.setColor(Color.YELLOW);
         Tempseries.setDrawDataPoints(true);
         Tempseries.setDataPointsRadius(10);
         Tempseries.setThickness(8);
-        TempGraph.addSeries(Tempseries);
+        TempBseries.setTitle("Temperature");
+        TempBseries.setColor(Color.YELLOW);
+        TempBseries.setDrawValuesOnTop(true);
+        TempBseries.setValuesOnTopColor(Color.BLACK);
+        TempBseries.setSpacing(25);
+        TempLineGraph.addSeries(Tempseries);
+        TempBarGraph.addSeries(TempBseries);
 
-        TempGraph.getLegendRenderer().setVisible(true);
-        TempGraph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+        TempLineGraph.getLegendRenderer().setVisible(true);
+        TempLineGraph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+        TempBarGraph.getLegendRenderer().setVisible(true);
+        TempBarGraph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
 
         // set date label formatter
-        TempGraph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), DateFormat.getDateInstance(DateFormat.SHORT, Locale.FRANCE)));
-        TempGraph.getGridLabelRenderer().setNumHorizontalLabels(3); // only 4 because of the space
+        TempLineGraph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), DateFormat.getDateInstance(DateFormat.SHORT, Locale.FRANCE)));
+        TempLineGraph.getGridLabelRenderer().setNumHorizontalLabels(3); // only 4 because of the space
+        TempBarGraph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), DateFormat.getDateInstance(DateFormat.SHORT, Locale.FRANCE)));
+        TempBarGraph.getGridLabelRenderer().setNumHorizontalLabels(3); // only 4 because of the space
 
         // set manual x bounds to have nice steps
-        TempGraph.getViewport().setMinX(dateList2.get(0).getTime());
-        TempGraph.getViewport().setMaxX(dateList2.get(dateList2.size()-1).getTime());
-        TempGraph.getViewport().setXAxisBoundsManual(true);
+        TempLineGraph.getViewport().setMinX(dateList2.get(0).getTime());
+        TempLineGraph.getViewport().setMaxX(dateList2.get(dateList2.size()-1).getTime());
+        TempLineGraph.getViewport().setXAxisBoundsManual(true);
+        TempBarGraph.getViewport().setMinX(dateList2.get(0).getTime());
+        TempBarGraph.getViewport().setMaxX(dateList2.get(dateList2.size()-1).getTime());
+        TempBarGraph.getViewport().setXAxisBoundsManual(true);
 
         // as we use dates as labels, the human rounding to nice readable numbers
         // is not necessary
-        TempGraph.getGridLabelRenderer().setHumanRounding(false);
+        TempLineGraph.getGridLabelRenderer().setHumanRounding(false);
+        TempBarGraph.getGridLabelRenderer().setHumanRounding(false);
 
         DataPoint[] dataPointArrayHum = new DataPoint[listHum.size()];
         listHum.toArray(dataPointArrayHum);
         LineGraphSeries<DataPoint> Humseries = new LineGraphSeries<>(dataPointArrayHum);
+        BarGraphSeries<DataPoint> HumBseries = new BarGraphSeries<>(dataPointArrayHum);
         // styling series
         Humseries.setTitle("Humidity");
-        Humseries.setColor(Color.BLUE);
+        Humseries.setColor(Color.CYAN);
         Humseries.setDrawDataPoints(true);
         Humseries.setDataPointsRadius(10);
         Humseries.setThickness(8);
-        HumGraph.addSeries(Humseries);
+        HumBseries.setTitle("Humidity");
+        HumBseries.setColor(Color.CYAN);
+        HumBseries.setDrawValuesOnTop(true);
+        HumBseries.setValuesOnTopColor(Color.BLACK);
+        HumBseries.setSpacing(25);
+        HumLineGraph.addSeries(Humseries);
+        HumBarGraph.addSeries(HumBseries);
 
-        HumGraph.getLegendRenderer().setVisible(true);
-        HumGraph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+        HumLineGraph.getLegendRenderer().setVisible(true);
+        HumLineGraph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+        HumBarGraph.getLegendRenderer().setVisible(true);
+        HumBarGraph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
 
         // set date label formatter
-        HumGraph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), DateFormat.getDateInstance(DateFormat.SHORT, Locale.FRANCE)));
-        HumGraph.getGridLabelRenderer().setNumHorizontalLabels(3); // only 4 because of the space
+        HumLineGraph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), DateFormat.getDateInstance(DateFormat.SHORT, Locale.FRANCE)));
+        HumLineGraph.getGridLabelRenderer().setNumHorizontalLabels(3); // only 4 because of the space
+        HumBarGraph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext(), DateFormat.getDateInstance(DateFormat.SHORT, Locale.FRANCE)));
+        HumBarGraph.getGridLabelRenderer().setNumHorizontalLabels(3); // only 4 because of the space
 
         // set manual x bounds to have nice steps
-        HumGraph.getViewport().setMinX(dateList2.get(0).getTime());
-        HumGraph.getViewport().setMaxX(dateList2.get(dateList2.size()-1).getTime());
-        HumGraph.getViewport().setXAxisBoundsManual(true);
+        HumLineGraph.getViewport().setMinX(dateList2.get(0).getTime());
+        HumLineGraph.getViewport().setMaxX(dateList2.get(dateList2.size()-1).getTime());
+        HumLineGraph.getViewport().setXAxisBoundsManual(true);
+        HumBarGraph.getViewport().setMinX(dateList2.get(0).getTime());
+        HumBarGraph.getViewport().setMaxX(dateList2.get(dateList2.size()-1).getTime());
+        HumBarGraph.getViewport().setXAxisBoundsManual(true);
 
         // as we use dates as labels, the human rounding to nice readable numbers
         // is not necessary
-        HumGraph.getGridLabelRenderer().setHumanRounding(false);
+        HumLineGraph.getGridLabelRenderer().setHumanRounding(false);
+        HumBarGraph.getGridLabelRenderer().setHumanRounding(false);
     }
 
     public void populateRowDataTable(AirQualityData a){
