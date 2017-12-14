@@ -232,6 +232,7 @@ public class City {
                         jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"),
                         jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2"),
                         jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field3"),
+                        jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field4"),
                         new TDate(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("created_at"))
                 ));
             }
@@ -243,7 +244,7 @@ public class City {
 
     public String getAQI(){
         double averagePPM=(double)((this.getOzoneO3() + this.getNitrogenDioxideNO2() + this.getCarbonMonoxideCO()) /3);
-        if(averagePPM<=54)
+        /*if(averagePPM<=54)
             return "Good";
         if(averagePPM<=154)
             return "Moderate";
@@ -254,13 +255,19 @@ public class City {
         if(averagePPM<=424)
             return "Very Unhealthy";
         if(averagePPM<=604||averagePPM>604)
-            return "Hazardous";
-        return "Error";
+            return "Hazardous";*/
+        if(averagePPM<=150)
+            return "Good";
+        if(averagePPM<=300)
+            return "Moderate";
+        if(averagePPM<=450 || averagePPM>450)
+            return "Unhealthy";
+        return "Error. this wasn't supposed to happen!";
     }
 
     public String getColorAQI(){
         double averagePPM=(double)((this.getOzoneO3() + this.getNitrogenDioxideNO2() + this.getCarbonMonoxideCO()) /3);
-        if(averagePPM<=54)
+        /*if(averagePPM<=54)
             return "#4dff4d";
         if(averagePPM<=154)
             return "#ffff33";
@@ -271,7 +278,13 @@ public class City {
         if(averagePPM<=424)
             return "#e600e6";
         if(averagePPM<=604||averagePPM>604)
-            return "#cc0000";
+            return "#cc0000";*/
+        if(averagePPM<=150)
+            return "#82FF82";
+        if(averagePPM<=300)
+            return "#FFFF70";
+        if(averagePPM<=450 || averagePPM>450)
+            return "#FF4747";
         return "#FFFFFF";
     }
 

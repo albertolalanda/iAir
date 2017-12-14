@@ -19,12 +19,12 @@
             android:id="@+id/main_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@android:color/holo_green_light"
             android:elevation="4dp"
             android:minHeight="56dp"
-            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+            android:theme="@style/iAirToolBarStyle"
             android:visibility="visible"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+            app:popupTheme="@style/ThemeOverlay.AppCompat" />
+
     </android.support.v4.widget.SwipeRefreshLayout>
 
         android:layout_width="match_parent"
@@ -319,7 +319,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:padding="10dp">
+                android:padding="10dp"
+                >
 
                 <TextView
                     android:id="@+id/textView"
@@ -340,6 +341,12 @@
                     android:id="@+id/LVEventList"
                     android:layout_width="match_parent"
                     android:layout_height="98dp"
+                    android:clickable="true"
+
+
+                    android:descendantFocusability="blocksDescendants"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
                     android:overScrollMode="ifContentScrolls"
                     android:scrollbars="vertical">
 
