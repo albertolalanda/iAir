@@ -33,13 +33,13 @@ import static org.hamcrest.Matchers.is;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class BarGraphCityHistoryActivityTest {
+public class SelectBarGraphCityHistoryActivityTest {
 
     @Rule
     public ActivityTestRule<DashBoardActivity> mActivityTestRule = new ActivityTestRule<>(DashBoardActivity.class);
 
     @Test
-    public void barGraphCityHistoryActivityTest() {
+    public void selectBarGraphCityHistoryActivityTest() {
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
@@ -76,13 +76,30 @@ public class BarGraphCityHistoryActivityTest {
                         isDisplayed()));
         appCompatButton.perform(click());
 
+        ViewInteraction appCompatSpinner = onView(
+                allOf(withId(R.id.spinnerDataType),
+                        childAtPosition(
+                                childAtPosition(
+                                        withClassName(is("android.widget.LinearLayout")),
+                                        2),
+                                1),
+                        isDisplayed()));
+        appCompatSpinner.perform(click());
+
+        DataInteraction appCompatTextView = onData(anything())
+                .inAdapterView(childAtPosition(
+                        withClassName(is("android.widget.PopupWindow$PopupBackgroundView")),
+                        0))
+                .atPosition(1);
+        appCompatTextView.perform(click());
+
         ViewInteraction view = onView(
                 allOf(withId(R.id.O3BarGraph),
                         childAtPosition(
                                 allOf(withId(R.id.BarGraphs),
                                         childAtPosition(
                                                 withId(R.id.cityData),
-                                                1)),
+                                                0)),
                                 0),
                         isDisplayed()));
         view.check(matches(isDisplayed()));
