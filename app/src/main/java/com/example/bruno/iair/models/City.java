@@ -160,15 +160,15 @@ public class City {
         return new JSONObject(jsonString);
     }
 
-    public void updateData() throws IOException, JSONException {
-        updateAirQualityHistory();
-        updateCityEvents();
-        updateDataFromCitySensors();
+    public void updateData(JSONObject jsonObjectAirQualityData, JSONObject jsonObjectDataCitySensors, JSONObject jsonObjectCityEvents) throws IOException, JSONException {
+        updateAirQualityHistory(jsonObjectAirQualityData);
+        updateCityEvents(jsonObjectCityEvents);
+        updateDataFromCitySensors(jsonObjectDataCitySensors);
     }
 
-    public void updateAirQualityHistory(){
+    public void updateAirQualityHistory(JSONObject jsonObject){
         try{
-            JSONObject jsonObject = this.getJSONObjectFromURL("https://api.thingspeak.com/channels/373908/feeds.json?api_key=IRDG2HB6BC8VG461");
+
 
             //System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field1"));
 
@@ -188,17 +188,14 @@ public class City {
                 }
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    public void updateDataFromCitySensors() throws IOException, JSONException {
+    public void updateDataFromCitySensors(JSONObject jsonObject) throws IOException, JSONException {
         try{
-            String sensorsURL = "https://api.thingspeak.com/channels/373891/feeds.json?api_key=VC0UA9ODEMHK7APY";
-            JSONObject jsonObject = getJSONObjectFromURL(sensorsURL);
+
 
             //System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(0).getString("field1"));
 
@@ -216,16 +213,13 @@ public class City {
                 }
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    public void updateCityEvents() throws IOException, JSONException {
-        String eventsURL = "https://api.thingspeak.com/channels/371908/feeds.json?api_key=1SED3ZW7C4B1A8J2";
-        JSONObject jsonObject = getJSONObjectFromURL(eventsURL);
+    public void updateCityEvents(JSONObject jsonObject) throws IOException, JSONException {
+
         //System.out.println("******Events******");
         // Last entry id:
         int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");

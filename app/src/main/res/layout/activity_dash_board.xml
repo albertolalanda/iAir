@@ -116,7 +116,7 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
-                                    android:text="O3"
+                                    android:text="O3: "
                                     android:textSize="18sp" />
 
                                 <TextView
@@ -147,7 +147,7 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
-                                    android:text="CO"
+                                    android:text="CO: "
                                     android:textSize="18sp" />
 
                                 <TextView
@@ -178,7 +178,7 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
-                                    android:text="NO2"
+                                    android:text="NO2: "
                                     android:textSize="18sp" />
 
                                 <TextView
@@ -228,8 +228,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="0"
-                        android:textSize="18sp"
-                        tools:text="TextView" />
+                        android:text="Temperature: "
+                        android:textSize="18sp" />
 
                     <TextView
                         android:id="@+id/textViewTemperatureData"
@@ -271,8 +271,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="0"
-                        android:textSize="18sp"
-                        tools:text="TextView" />
+                        android:text="Humidity: "
+                        android:textSize="18sp" />
 
                     <TextView
                         android:id="@+id/textViewHumidityData"
@@ -327,6 +327,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Recent Events (Date | Type | UserID)" />
+
+                <TextView
+                    android:id="@+id/noEventTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="68dp"
+                    android:text="This city doesn't have any event associated at the moment."
+                    android:textAlignment="center"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+                    android:visibility="gone" />
 
                 <ListView
                     android:id="@+id/LVEventList"

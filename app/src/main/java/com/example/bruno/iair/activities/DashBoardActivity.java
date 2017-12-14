@@ -98,6 +98,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     public static String citiesURL;
     public static String countriesURL;
     private SwipeRefreshLayout swipeRefresh;
+    private TextView noEventsTextview;
 
     private SensorManager mSensorManager;
     private Sensor mTemperature;
@@ -107,6 +108,10 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     private static float relativeHumidity;
     private static double lon;
     private static double lat;
+
+    private JSONObject jsonObjectAirQualityData;
+    private JSONObject jsonObjectDataCitySensors;
+    private JSONObject jsonObjectCityEvents;
 
     @SuppressLint("ResourceAsColor")
     @Override
@@ -122,6 +127,19 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
 
         citiesURL = "https://api.thingspeak.com/channels/371900/feeds.json?api_key=ADDXWHYRJNAY95LZ";
         countriesURL = "https://api.thingspeak.com/channels/369386/feeds.json?api_key=EH9WYNAGVS2EDGNS";
+
+        try {
+            String airDataURL = "https://api.thingspeak.com/channels/373908/feeds.json?api_key=IRDG2HB6BC8VG461";
+            jsonObjectAirQualityData = getJSONObjectFromURL(airDataURL);
+            String sensorsURL = "https://api.thingspeak.com/channels/373891/feeds.json?api_key=VC0UA9ODEMHK7APY";
+            jsonObjectDataCitySensors = getJSONObjectFromURL(sensorsURL);
+            String eventsURL = "https://api.thingspeak.com/channels/371908/feeds.json?api_key=1SED3ZW7C4B1A8J2";
+            jsonObjectCityEvents = getJSONObjectFromURL(eventsURL);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         SharedPreferences sharedPrefs = getSharedPreferences("username", MODE_PRIVATE);
         if (!sharedPrefs.contains("user")){
@@ -154,6 +172,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cityHumidityData = findViewById(R.id.textViewHumidityData);
         cityHumidityUser = findViewById(R.id.textViewCityHumidityUser);
         cityHumidityDataUser = findViewById(R.id.textViewCityHumidityDataUser);
+        noEventsTextview = findViewById(R.id.noEventTextView);
 
         cityOzone = findViewById(R.id.textViewCityOzone);
         cityOzoneData = findViewById(R.id.textViewOzoneData);
@@ -164,6 +183,8 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cityAirQualityDate = findViewById(R.id.textViewAirQualityDate);
         layoutInfo = findViewById(R.id.layoutInfoo);
         listViewOfCities = findViewById(R.id.cityList);
+        listViewOfEvents = findViewById(R.id.LVEventList);
+
         adapter = new ArrayAdapter<City>(this, android.R.layout.simple_list_item_1, cities);
         listViewOfCities.setAdapter(adapter);
         listViewOfCities.setTextFilterEnabled(true);
@@ -184,7 +205,15 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             e.printStackTrace();
         }
 
-        //cities.get(1).setFavorite(true);
+        try {
+            for(City c:this.getCities()){
+                c.updateData(jsonObjectAirQualityData,jsonObjectDataCitySensors,jsonObjectCityEvents);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         favoriteCity = City.getFavoriteCity(cities);
         if(favoriteCity!=null){
@@ -192,54 +221,40 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                 favoriteCity=currentLocation();
             }
 
-        try {
-            favoriteCity.updateData();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+            cityName.setText(favoriteCity.getName());
+            linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
+            cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
+            cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
+            cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + "");
+            cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + "");
+            cityAirQualityDate.setText(favoriteCity.getDate());
 
-        cityName.setText(favoriteCity.getName());
-        linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
-        cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
+            cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
+            cityHumidityData.setText(favoriteCity.getHumidity() + " %");
 
-        cityTemperature.setText("Temperature: ");
-        cityHumidity.setText("Humidity: ");
-
-        cityOzone.setText("O3: ");
-        cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
-        cityCarbonMonoxide.setText("CO2: ");
-        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + "");
-        cityNitrogenDioxide.setText("NO2: ");
-        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + "");
-        cityAirQualityDate.setText(favoriteCity.getDate());
-
-        listViewOfEvents = findViewById(R.id.LVEventList);
-        listViewOfEvents.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapter, View view, int position, long arg) {
-                String data = listViewOfEvents.getAdapter().getItem(position).toString();
-
-                Toast.makeText(DashBoardActivity.this, "oiiioiooiioioi", Toast.LENGTH_SHORT).show();
-            /*Intent appInfo = new Intent(CityListActivity.this, CityActivity.class);
-        appInfo.putExtra("city", data);
-        startActivityForResult(appInfo,REQUEST_FAV);*/
+            if(hasTempSensor()){
+                cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
             }
-        });
-        /*adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
-        listViewOfEvents.setAdapter(adapterEvents);*/
+            if(hasHumSensor()){
+                cityHumidityDataUser.setText(" | " + getHum() + " %");
+            }
 
 
-
-        if (favoriteCity.isFavorite()) {
-
-        }
+            LinkedList<Event> events = favoriteCity.getEvents();
+            if(events.isEmpty()){
+                noEventsTextview.setVisibility(View.VISIBLE);
+                listViewOfEvents.setVisibility(View.GONE);
+            }else{
+                noEventsTextview.setVisibility(View.GONE);
+                listViewOfEvents.setVisibility(View.VISIBLE);
+                adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, events);
+                listViewOfEvents.setAdapter(adapterEvents);
+                listViewOfEvents.setTextFilterEnabled(true);
+            }
         }else{
             Intent appInfo = new Intent(DashBoardActivity.this, SelectFavoriteCityActivity.class);
             startActivityForResult(appInfo,REQUEST_FAV);
         }
-
         //SEND SENSOR DATA
         Button sendSensorData = findViewById(R.id.sendDataBtn);
         sendSensorData.setOnClickListener(new View.OnClickListener() {
@@ -271,8 +286,6 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                 startActivity(appEventsInfo);
             }
         });
-
-
     }
 
 
@@ -282,7 +295,6 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         if(favoriteCity.getName().equals("GPS")){
             favoriteCity=currentLocation();
         }
-        favoriteCity.updateData();
         linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
         cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
         cityName.setText(favoriteCity.getName());
@@ -302,10 +314,73 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         if(hasHumSensor()){
             cityHumidityDataUser.setText(" | " + getHum() + " %");
         }
-        listViewOfEvents = findViewById(R.id.LVEventList);
-        adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, favoriteCity.getEvents());
-        listViewOfEvents.setAdapter(adapterEvents);
-        listViewOfEvents.setTextFilterEnabled(true);
+
+        LinkedList<Event> events = favoriteCity.getEvents();
+        if(events.isEmpty()){
+            noEventsTextview.setVisibility(View.VISIBLE);
+            listViewOfEvents.setVisibility(View.GONE);
+        }else{
+            noEventsTextview.setVisibility(View.GONE);
+            listViewOfEvents.setVisibility(View.VISIBLE);
+            adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, events);
+            listViewOfEvents.setAdapter(adapterEvents);
+            listViewOfEvents.setTextFilterEnabled(true);
+        }
+        cityAirQualityDate.setText(favoriteCity.getDate());
+
+    }
+
+
+    private void atualizarListaRefresh() throws IOException, JSONException {
+        favoriteCity = City.getFavoriteCity(cities);
+        System.out.println(favoriteCity);
+        if(favoriteCity.getName().equals("GPS")){
+            favoriteCity=currentLocation();
+        }
+        try {
+            String airDataURL = "https://api.thingspeak.com/channels/373908/feeds.json?api_key=IRDG2HB6BC8VG461";
+            jsonObjectAirQualityData = this.getJSONObjectFromURL(airDataURL);
+            String sensorsURL = "https://api.thingspeak.com/channels/373891/feeds.json?api_key=VC0UA9ODEMHK7APY";
+            jsonObjectDataCitySensors = getJSONObjectFromURL(sensorsURL);
+            String eventsURL = "https://api.thingspeak.com/channels/371908/feeds.json?api_key=1SED3ZW7C4B1A8J2";
+            jsonObjectCityEvents = getJSONObjectFromURL(eventsURL);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        for(City c:this.getCities()){
+            c.updateData(jsonObjectAirQualityData,jsonObjectDataCitySensors,jsonObjectCityEvents);
+        }
+        linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
+        cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
+        cityName.setText(favoriteCity.getName());
+
+        cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
+        cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + "");
+        cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + "");
+
+        cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
+        cityHumidityData.setText(favoriteCity.getHumidity() + " %");
+
+        if(hasTempSensor()){
+            cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
+        }
+        if(hasHumSensor()){
+            cityHumidityDataUser.setText(" | " + getHum() + " %");
+        }
+
+        LinkedList<Event> events = favoriteCity.getEvents();
+        if(events.isEmpty()){
+            noEventsTextview.setVisibility(View.VISIBLE);
+            listViewOfEvents.setVisibility(View.GONE);
+        }else{
+            noEventsTextview.setVisibility(View.GONE);
+            listViewOfEvents.setVisibility(View.VISIBLE);
+            adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, events);
+            listViewOfEvents.setAdapter(adapterEvents);
+            listViewOfEvents.setTextFilterEnabled(true);
+        }
         cityAirQualityDate.setText(favoriteCity.getDate());
 
     }
@@ -341,7 +416,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     @Override
     public void onRefresh() {
         try {
-            atualizarLista();
+            atualizarListaRefresh();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (JSONException e) {
