@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -59,6 +60,9 @@ public class CityHistoryActivity extends AppCompatActivity implements AdapterVie
     private GraphView HumBarGraph;
     private Spinner spinnerStartDate;
     private Spinner spinnerEndDate;
+    private Spinner spinnerDataType;
+    private LinearLayout LineGraphs;
+    private LinearLayout BarGraphs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +72,9 @@ public class CityHistoryActivity extends AppCompatActivity implements AdapterVie
         //        MAIN_MENU
         Toolbar myToolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(myToolbar);
+
+        LineGraphs = findViewById(R.id.LineGraphs);
+        BarGraphs = findViewById(R.id.BarGraphs);
 
         cityName = findViewById(R.id.textViewCityName);
 
@@ -97,7 +104,7 @@ public class CityHistoryActivity extends AppCompatActivity implements AdapterVie
 
         ArrayList<TDate> dates = getListOfDates();
 
-        ArrayAdapter<TDate> adapter = new ArrayAdapter<TDate>(
+        ArrayAdapter<TDate> adapter = new ArrayAdapter<>(
                 this, android.R.layout.simple_spinner_item, dates);
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -108,6 +115,16 @@ public class CityHistoryActivity extends AppCompatActivity implements AdapterVie
         spinnerEndDate.setAdapter(adapter);
         spinnerEndDate.setOnItemSelectedListener(this);
         spinnerEndDate.setSelection(dates.size()-1);
+
+        ArrayList<String> dataType = new ArrayList<>();
+        dataType.add("Line Graph");
+        dataType.add("Bar Graph");
+
+        ArrayAdapter<String> adapter2 = new ArrayAdapter<>(
+                this, android.R.layout.simple_list_item_1, dataType);
+        spinnerDataType = (Spinner) findViewById(R.id.spinnerDataType);
+        spinnerDataType.setAdapter(adapter2);
+        spinnerDataType.setOnItemSelectedListener(this);
 
         populateTablesAndGraphics(parseString(spinnerStartDate.getSelectedItem().toString()),parseString(spinnerEndDate.getSelectedItem().toString()));
 
@@ -490,6 +507,13 @@ public class CityHistoryActivity extends AppCompatActivity implements AdapterVie
 
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         // On selecting a spinner item
+        if(parent.getItemAtPosition(position).toString()=="Line Graph"){
+            BarGraphs.setVisibility(View.GONE);
+            LineGraphs.setVisibility(View.VISIBLE);
+        } else if(parent.getItemAtPosition(position).toString()=="Bar Graph"){
+            BarGraphs.setVisibility(View.VISIBLE);
+            LineGraphs.setVisibility(View.GONE);
+        }
 
         System.out.println(spinnerStartDate.getSelectedItem().toString());
         System.out.println(spinnerStartDate.getSelectedItem().toString().substring(0,2));
