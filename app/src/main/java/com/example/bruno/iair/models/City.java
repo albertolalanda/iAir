@@ -48,7 +48,7 @@ public class City {
         this.events = new LinkedList<Event>();
         this.airQualityHistory = new LinkedList<AirQualityData>();
         this.sensorsDataHistory = new LinkedList<SensorsData>();
-        this.sensorsDataHistory.add(new SensorsData(0,0));
+        this.sensorsDataHistory.add(new SensorsData(0,0,new TDate("1971-05-16T01:03:48Z")));
         this.airQualityHistory.add(new AirQualityData(0,0,0,new TDate("1971-05-16T01:03:48Z")));
     }
     public boolean isFavorite() {
@@ -208,7 +208,8 @@ public class City {
                 if(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1").equals(this.name)){
                     sensorsDataHistory.add(new SensorsData(
                             Double.parseDouble( jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field4") ),
-                            Double.parseDouble( jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field5") )
+                            Double.parseDouble( jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field5") ),
+                            new TDate(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("created_at"))
                     ));
                 }
             }
@@ -298,5 +299,9 @@ public class City {
 
     public LinkedList<AirQualityData> getAirQualityHistory() {
         return airQualityHistory;
+    }
+
+    public LinkedList<SensorsData> getSensorsDataHistory() {
+        return sensorsDataHistory;
     }
 }

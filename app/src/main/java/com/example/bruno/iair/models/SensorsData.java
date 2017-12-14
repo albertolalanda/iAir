@@ -12,10 +12,12 @@ public class SensorsData {
     /*DEFINE VARS*/
     private double temp;
     private double hum;
+    private TDate date;
 
-    public SensorsData(double temp, double hum) {
+    public SensorsData(double temp, double hum, TDate date) {
         this.temp = temp;
         this.hum = hum;
+        this.date = date;
     }
 
     public double getTemp() {
@@ -24,5 +26,9 @@ public class SensorsData {
 
     public double getHum() {
         return hum;
+    }
+
+    public TDate getDate() {
+        return date;
     }
 }

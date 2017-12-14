@@ -27,7 +27,7 @@
         <activity android:name=".activities.SensorDataActivity" />
         <activity android:name=".activities.EventsDataActivity" />
         <activity android:name=".activities.SettingsActivity" />
-        <activity android:name=".activities.CityHistoryActivity"></activity>
+        <activity android:name=".activities.CityHistoryActivity" />
     </application>
 
 </manifest>

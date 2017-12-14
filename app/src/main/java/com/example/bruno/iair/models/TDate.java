@@ -29,8 +29,8 @@ public class TDate {
         this.second = Integer.parseInt(date.substring(17,19));
     }
 
-    @Override
-    public String toString() {
+
+    public String toStringExtended() {
         String minuten = ""+minute;
        if(minute<10){
            minuten="0"+minute;
@@ -38,7 +38,8 @@ public class TDate {
 
         return day + "/" + month + "/" + year + " " + hour + ":" + minuten;
     }
-    public String toStringCondensed(){
+    @Override
+    public String toString(){
         return day + "/" + month + "/" + year;
     }
 
@@ -65,4 +66,17 @@ public class TDate {
     public int getSecond() {
         return second;
     }
+
+    public void setYear(int year) {
+        this.year = year;
+    }
+
+    public void setMonth(int month) {
+        this.month = month;
+    }
+
+    public void setDay(int day) {
+        this.day = day;
+    }
+
 }
