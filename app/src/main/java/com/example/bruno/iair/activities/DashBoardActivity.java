@@ -14,6 +14,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.provider.SyncStateContract;
@@ -31,6 +32,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -54,8 +56,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.SQLOutput;
@@ -130,6 +140,8 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         }
         Toolbar myToolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(myToolbar);
+
+
 
         citiesURL = "https://api.thingspeak.com/channels/371900/feeds.json?api_key=ADDXWHYRJNAY95LZ";
         countriesURL = "https://api.thingspeak.com/channels/369386/feeds.json?api_key=EH9WYNAGVS2EDGNS";
@@ -225,7 +237,45 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         }
 
         if (AppStatus.getInstance(this).isOnline()) {
-            Toast.makeText(this, "You are online!!!!", Toast.LENGTH_SHORT).show();
+
+            favoriteCity = City.getFavoriteCity(cities);
+            if (favoriteCity != null) {
+
+                cityName.setText(favoriteCity.getName());
+                linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
+                cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
+                cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
+                cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + "");
+                cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + "");
+                cityAirQualityDate.setText(favoriteCity.getDate());
+
+                cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
+                cityHumidityData.setText(favoriteCity.getHumidity() + " %");
+
+                if (hasTempSensor()) {
+                    cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
+                }
+                if (hasHumSensor()) {
+                    cityHumidityDataUser.setText(" | " + getHum() + " %");
+                }
+
+
+                LinkedList<Event> events = favoriteCity.getEvents();
+                if (events.isEmpty()) {
+                    noEventsTextview.setVisibility(View.VISIBLE);
+                    listViewOfEvents.setVisibility(View.GONE);
+                } else {
+                    noEventsTextview.setVisibility(View.GONE);
+                    listViewOfEvents.setVisibility(View.VISIBLE);
+                    adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, events);
+                    listViewOfEvents.setAdapter(adapterEvents);
+                    listViewOfEvents.setTextFilterEnabled(true);
+                }
+            } else {
+                Intent appInfo = new Intent(DashBoardActivity.this, SelectFavoriteCityActivity.class);
+                startActivityForResult(appInfo, REQUEST_FAV);
+
+            }
         } else{
             AlertDialog alertDialog = new AlertDialog.Builder(this).create();
             alertDialog.setTitle("Alert");
@@ -233,12 +283,18 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Go Online",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
+
                             DashBoardActivity.this.startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+                            System.exit(0);
+
                         }
                     });
             alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Continue",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
+
+                            getSupportActionBar().setIcon(R.drawable.ic_offline_icon);
+
 
                         }
                     });
@@ -246,44 +302,8 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         }
 
 
-        favoriteCity = City.getFavoriteCity(cities);
-        if (favoriteCity != null) {
-
-            cityName.setText(favoriteCity.getName());
-            linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
-            cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
-            cityOzoneData.setText(favoriteCity.getOzoneO3() + "");
-            cityCarbonMonoxideData.setText(favoriteCity.getCarbonMonoxideCO() + "");
-            cityNitrogenDioxideData.setText(favoriteCity.getNitrogenDioxideNO2() + "");
-            cityAirQualityDate.setText(favoriteCity.getDate());
-
-            cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
-            cityHumidityData.setText(favoriteCity.getHumidity() + " %");
-
-            if (hasTempSensor()) {
-                cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
-            }
-            if (hasHumSensor()) {
-                cityHumidityDataUser.setText(" | " + getHum() + " %");
-            }
 
 
-            LinkedList<Event> events = favoriteCity.getEvents();
-            if (events.isEmpty()) {
-                noEventsTextview.setVisibility(View.VISIBLE);
-                listViewOfEvents.setVisibility(View.GONE);
-            } else {
-                noEventsTextview.setVisibility(View.GONE);
-                listViewOfEvents.setVisibility(View.VISIBLE);
-                adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, events);
-                listViewOfEvents.setAdapter(adapterEvents);
-                listViewOfEvents.setTextFilterEnabled(true);
-            }
-        } else {
-                //Intent appInfo = new Intent(DashBoardActivity.this, SelectFavoriteCityActivity.class);
-                //startActivityForResult(appInfo, REQUEST_FAV);
-
-        }
 
 
         //SEND SENSOR DATA
@@ -330,6 +350,24 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             }
         });
 
+
+    }
+
+    private void loadCitiesFromFile() {
+        FileInputStream fileInput = null;
+        try {
+            fileInput = openFileInput("cities.json");
+
+            int c;
+            String message = "";
+            while ((c = fileInput.read()) != -1) {
+                message += String.valueOf((char) c);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -537,6 +575,13 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         //CITY GPS NAO APARECE NA LISTA ??? niceee
         cities.add(new City("GPS", new Country("GPS", "9999"), 0, 0));
         //System.out.println(cities);
+
+        String FILENAME = "cities.json";
+
+        FileOutputStream fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
+        fos.write(jsonObject.toString().getBytes());
+        fos.close();
+
 
     }
 

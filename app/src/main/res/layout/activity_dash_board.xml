@@ -23,7 +23,10 @@
             android:minHeight="56dp"
             android:theme="@style/iAirToolBarStyle"
             android:visibility="visible"
-            app:popupTheme="@style/ThemeOverlay.AppCompat" />
+            app:popupTheme="@style/ThemeOverlay.AppCompat"
+
+
+            />
 
     </android.support.v4.widget.SwipeRefreshLayout>
 
