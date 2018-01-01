@@ -74,6 +74,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+import static android.R.layout.simple_list_item_1;
 import static android.view.View.GONE;
 import static java.lang.Boolean.FALSE;
 
@@ -146,18 +147,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         citiesURL = "https://api.thingspeak.com/channels/371900/feeds.json?api_key=ADDXWHYRJNAY95LZ";
         countriesURL = "https://api.thingspeak.com/channels/369386/feeds.json?api_key=EH9WYNAGVS2EDGNS";
 
-        try {
-            String airDataURL = "https://api.thingspeak.com/channels/373908/feeds.json?api_key=IRDG2HB6BC8VG461";
-            jsonObjectAirQualityData = getJSONObjectFromURL(airDataURL);
-            String sensorsURL = "https://api.thingspeak.com/channels/373891/feeds.json?api_key=VC0UA9ODEMHK7APY";
-            jsonObjectDataCitySensors = getJSONObjectFromURL(sensorsURL);
-            String eventsURL = "https://api.thingspeak.com/channels/371908/feeds.json?api_key=1SED3ZW7C4B1A8J2";
-            jsonObjectCityEvents = getJSONObjectFromURL(eventsURL);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+
 
         SharedPreferences sharedUser = getSharedPreferences("user", MODE_PRIVATE);
 
@@ -206,37 +196,52 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         listViewOfCities = findViewById(R.id.cityList);
         listViewOfEvents = findViewById(R.id.LVEventList);
 
-        adapter = new ArrayAdapter<City>(this, android.R.layout.simple_list_item_1, cities);
+        adapter = new ArrayAdapter<City>(this, simple_list_item_1, cities);
         listViewOfCities.setAdapter(adapter);
         listViewOfCities.setTextFilterEnabled(true);
 
 
-        try {
-            populateCountries();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        try {
-            populateCities();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
 
-        try {
-            for (City c : this.getCities()) {
-                c.updateData(jsonObjectAirQualityData, jsonObjectDataCitySensors, jsonObjectCityEvents);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
 
         if (AppStatus.getInstance(this).isOnline()) {
+            try {
+                //TODO: create and save file of airData, SensorsData and EvenstsData => updateData from JsonObject from files
+                String airDataURL = "https://api.thingspeak.com/channels/373908/feeds.json?api_key=IRDG2HB6BC8VG461";
+                jsonObjectAirQualityData = getJSONObjectFromURL(airDataURL);
+                String sensorsURL = "https://api.thingspeak.com/channels/373891/feeds.json?api_key=VC0UA9ODEMHK7APY";
+                jsonObjectDataCitySensors = getJSONObjectFromURL(sensorsURL);
+                String eventsURL = "https://api.thingspeak.com/channels/371908/feeds.json?api_key=1SED3ZW7C4B1A8J2";
+                jsonObjectCityEvents = getJSONObjectFromURL(eventsURL);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                populateCountries();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                populateCities();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                for (City c : this.getCities()) {
+                    c.updateData(jsonObjectAirQualityData, jsonObjectDataCitySensors, jsonObjectCityEvents);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
             favoriteCity = City.getFavoriteCity(cities);
             if (favoriteCity != null) {
@@ -267,7 +272,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                 } else {
                     noEventsTextview.setVisibility(View.GONE);
                     listViewOfEvents.setVisibility(View.VISIBLE);
-                    adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, events);
+                    adapterEvents = new ArrayAdapter<Event>(this, simple_list_item_1, events);
                     listViewOfEvents.setAdapter(adapterEvents);
                     listViewOfEvents.setTextFilterEnabled(true);
                 }
@@ -294,7 +299,10 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                         public void onClick(DialogInterface dialog, int which) {
 
                             getSupportActionBar().setIcon(R.drawable.ic_offline_icon);
-
+                            loadCountriesFromFile();
+                            loadCitiesFromFile();
+                            Intent appInfo = new Intent(DashBoardActivity.this, SelectFavoriteCityActivity.class);
+                            startActivityForResult(appInfo, REQUEST_FAV);
 
                         }
                     });
@@ -353,6 +361,47 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
 
     }
 
+    private void loadCountriesFromFile() {
+        FileInputStream fileInput = null;
+        try {
+            fileInput = openFileInput("countries.json");
+
+            int c;
+            String message = "";
+            while ((c = fileInput.read()) != -1) {
+                message += String.valueOf((char) c);
+
+
+            }
+            System.out.println("message from file: " + message);
+            JSONObject jsonObject = new JSONObject(message);
+            System.out.println("JSONOBJECT: " + jsonObject);
+            int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
+            for (int i = 0; i < last; i++) {
+                System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"));
+                System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2"));
+                countries.add(new Country(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"), jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2")));
+            }
+
+
+            //FIX TEMPORARIO
+            //CITY GPS NAO APARECE NA LISTA ??? niceee
+            cities.add(new City("GPS", new Country("GPS", "9999"), 0, 0));
+            //System.out.println(cities);
+
+        }
+
+
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     private void loadCitiesFromFile() {
         FileInputStream fileInput = null;
         try {
@@ -362,10 +411,28 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             String message = "";
             while ((c = fileInput.read()) != -1) {
                 message += String.valueOf((char) c);
+
+
+        }
+        JSONObject jsonObject = new JSONObject(message);
+            int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
+            for (int i = 0; i < last; i++) {
+                cities.add(new City(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"), findCountryWithID(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field3")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field4"))));
             }
-        } catch (FileNotFoundException e) {
+
+            //FIX TEMPORARIO
+            //CITY GPS NAO APARECE NA LISTA ??? niceee
+            cities.add(new City("GPS", new Country("GPS", "9999"), 0, 0));
+            //System.out.println(cities);
+
+        }
+
+
+        catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
             e.printStackTrace();
         }
 
@@ -405,7 +472,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         } else {
             noEventsTextview.setVisibility(View.GONE);
             listViewOfEvents.setVisibility(View.VISIBLE);
-            adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, events);
+            adapterEvents = new ArrayAdapter<Event>(this, simple_list_item_1, events);
             listViewOfEvents.setAdapter(adapterEvents);
             listViewOfEvents.setTextFilterEnabled(true);
         }
@@ -460,7 +527,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         } else {
             noEventsTextview.setVisibility(View.GONE);
             listViewOfEvents.setVisibility(View.VISIBLE);
-            adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, events);
+            adapterEvents = new ArrayAdapter<Event>(this, simple_list_item_1, events);
             listViewOfEvents.setAdapter(adapterEvents);
             listViewOfEvents.setTextFilterEnabled(true);
         }
@@ -538,6 +605,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     }
 
     public void populateCountries() throws IOException, JSONException {
+
         JSONObject jsonObject = getJSONObjectFromURL(countriesURL);
         //System.out.println("******Countries******");
         // Last entry id:
@@ -548,6 +616,12 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2"));
             countries.add(new Country(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"), jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2")));
         }
+
+        String FILENAME = "countries.json";
+
+        FileOutputStream fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
+        fos.write(jsonObject.toString().getBytes());
+        fos.close();
 
         //System.out.println(countries);
     }

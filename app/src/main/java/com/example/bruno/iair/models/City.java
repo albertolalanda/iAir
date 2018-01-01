@@ -309,12 +309,5 @@ public class City {
         return sensorsDataHistory;
     }
 
-    public static City getFavoriteCityByName(LinkedList<City> cities, String city) {
-        for(City c: cities){
-            if (c.isFavorite() == true && city == c.getName()){
-                return c;
-            }
-        }
-        return null;
-    }
+
 }
