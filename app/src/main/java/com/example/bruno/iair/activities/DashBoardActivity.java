@@ -16,6 +16,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
+import android.provider.SyncStateContract;
 import android.support.v4.view.MenuItemCompat;
 import android.provider.Settings;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -45,7 +46,9 @@ import com.example.bruno.iair.models.City;
 import com.example.bruno.iair.models.Country;
 import com.example.bruno.iair.models.Event;
 import com.example.bruno.iair.models.TDate;
+import com.example.bruno.iair.services.AppStatus;
 import com.example.bruno.iair.services.GPSTracker;
+import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -64,7 +67,7 @@ import java.util.Random;
 import static android.view.View.GONE;
 import static java.lang.Boolean.FALSE;
 
-public class DashBoardActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener,SensorEventListener {
+public class DashBoardActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, SensorEventListener {
 
     public static LinkedList<City> cities;
     public static LinkedList<Country> countries;
@@ -113,11 +116,14 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     private JSONObject jsonObjectDataCitySensors;
     private JSONObject jsonObjectCityEvents;
 
+
     @SuppressLint("ResourceAsColor")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dash_board);
+
+
         if (android.os.Build.VERSION.SDK_INT > 9) {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
@@ -141,21 +147,24 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             e.printStackTrace();
         }
 
-        SharedPreferences sharedPrefs = getSharedPreferences("username", MODE_PRIVATE);
-        if (!sharedPrefs.contains("user")){
+        SharedPreferences sharedUser = getSharedPreferences("user", MODE_PRIVATE);
+
+
+        if (!sharedUser.contains("user")) {
             username = generateUsername();
-            SharedPreferences.Editor editor = sharedPrefs.edit();
+            SharedPreferences.Editor editor = sharedUser.edit();
             editor.putString("user", username);
             editor.commit();
+        } else {
+            username = sharedUser.getString("user", null);
         }
-        else{
-            username = sharedPrefs.getString("user", null);
-        }
+
+
+
 
         swipeRefresh = findViewById(R.id.swiperefresh);
         swipeRefresh.setOnRefreshListener(this);
         swipeRefresh.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.CYAN);
-
 
 
         cities = new LinkedList<City>();
@@ -206,8 +215,8 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         }
 
         try {
-            for(City c:this.getCities()){
-                c.updateData(jsonObjectAirQualityData,jsonObjectDataCitySensors,jsonObjectCityEvents);
+            for (City c : this.getCities()) {
+                c.updateData(jsonObjectAirQualityData, jsonObjectDataCitySensors, jsonObjectCityEvents);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -215,11 +224,30 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             e.printStackTrace();
         }
 
+        if (AppStatus.getInstance(this).isOnline()) {
+            Toast.makeText(this, "You are online!!!!", Toast.LENGTH_SHORT).show();
+        } else{
+            AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+            alertDialog.setTitle("Alert");
+            alertDialog.setMessage("No internet Connection!");
+            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Go Online",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            DashBoardActivity.this.startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+                        }
+                    });
+            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Continue",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    });
+            alertDialog.show();
+        }
+
+
         favoriteCity = City.getFavoriteCity(cities);
-        if(favoriteCity!=null){
-            if(favoriteCity.getName().equals("GPS")){
-                favoriteCity=currentLocation();
-            }
+        if (favoriteCity != null) {
 
             cityName.setText(favoriteCity.getName());
             linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
@@ -232,29 +260,32 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
             cityHumidityData.setText(favoriteCity.getHumidity() + " %");
 
-            if(hasTempSensor()){
+            if (hasTempSensor()) {
                 cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
             }
-            if(hasHumSensor()){
+            if (hasHumSensor()) {
                 cityHumidityDataUser.setText(" | " + getHum() + " %");
             }
 
 
             LinkedList<Event> events = favoriteCity.getEvents();
-            if(events.isEmpty()){
+            if (events.isEmpty()) {
                 noEventsTextview.setVisibility(View.VISIBLE);
                 listViewOfEvents.setVisibility(View.GONE);
-            }else{
+            } else {
                 noEventsTextview.setVisibility(View.GONE);
                 listViewOfEvents.setVisibility(View.VISIBLE);
                 adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, events);
                 listViewOfEvents.setAdapter(adapterEvents);
                 listViewOfEvents.setTextFilterEnabled(true);
             }
-        }else{
-            Intent appInfo = new Intent(DashBoardActivity.this, SelectFavoriteCityActivity.class);
-            startActivityForResult(appInfo,REQUEST_FAV);
+        } else {
+                //Intent appInfo = new Intent(DashBoardActivity.this, SelectFavoriteCityActivity.class);
+                //startActivityForResult(appInfo, REQUEST_FAV);
+
         }
+
+
         //SEND SENSOR DATA
         Button sendSensorData = findViewById(R.id.sendDataBtn);
         sendSensorData.setOnClickListener(new View.OnClickListener() {
@@ -267,10 +298,10 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             }
         });
 
-        if(!hasTempSensor() && !hasHumSensor()){
+        if (!hasTempSensor() && !hasHumSensor()) {
             sendSensorData.setEnabled(false);
-        }else{
-            mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        } else {
+            mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
             mTemperature = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
             mHumidity = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
         }
@@ -298,14 +329,16 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                 startActivity(appHistoryInfo);
             }
         });
+
+
     }
 
 
     private void atualizarLista() throws IOException, JSONException {
         favoriteCity = City.getFavoriteCity(cities);
         System.out.println(favoriteCity);
-        if(favoriteCity.getName().equals("GPS")){
-            favoriteCity=currentLocation();
+        if (favoriteCity.getName().equals("GPS")) {
+            favoriteCity = currentLocation();
         }
         linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
         cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
@@ -320,18 +353,18 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
         cityHumidityData.setText(favoriteCity.getHumidity() + " %");
 
-        if(hasTempSensor()){
+        if (hasTempSensor()) {
             cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
         }
-        if(hasHumSensor()){
+        if (hasHumSensor()) {
             cityHumidityDataUser.setText(" | " + getHum() + " %");
         }
 
         LinkedList<Event> events = favoriteCity.getEvents();
-        if(events.isEmpty()){
+        if (events.isEmpty()) {
             noEventsTextview.setVisibility(View.VISIBLE);
             listViewOfEvents.setVisibility(View.GONE);
-        }else{
+        } else {
             noEventsTextview.setVisibility(View.GONE);
             listViewOfEvents.setVisibility(View.VISIBLE);
             adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, events);
@@ -346,8 +379,8 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     private void atualizarListaRefresh() throws IOException, JSONException {
         favoriteCity = City.getFavoriteCity(cities);
         System.out.println(favoriteCity);
-        if(favoriteCity.getName().equals("GPS")){
-            favoriteCity=currentLocation();
+        if (favoriteCity.getName().equals("GPS")) {
+            favoriteCity = currentLocation();
         }
         try {
             String airDataURL = "https://api.thingspeak.com/channels/373908/feeds.json?api_key=IRDG2HB6BC8VG461";
@@ -361,8 +394,8 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        for(City c:this.getCities()){
-            c.updateData(jsonObjectAirQualityData,jsonObjectDataCitySensors,jsonObjectCityEvents);
+        for (City c : this.getCities()) {
+            c.updateData(jsonObjectAirQualityData, jsonObjectDataCitySensors, jsonObjectCityEvents);
         }
         linearLayoutAQI.setBackgroundColor(Color.parseColor(favoriteCity.getColorAQI()));
         cityAQI.setText("Air Quality is " + favoriteCity.getAQI());
@@ -375,18 +408,18 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         cityTemperatureData.setText(favoriteCity.getTemperature() + " ºC");
         cityHumidityData.setText(favoriteCity.getHumidity() + " %");
 
-        if(hasTempSensor()){
+        if (hasTempSensor()) {
             cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
         }
-        if(hasHumSensor()){
+        if (hasHumSensor()) {
             cityHumidityDataUser.setText(" | " + getHum() + " %");
         }
 
         LinkedList<Event> events = favoriteCity.getEvents();
-        if(events.isEmpty()){
+        if (events.isEmpty()) {
             noEventsTextview.setVisibility(View.VISIBLE);
             listViewOfEvents.setVisibility(View.GONE);
-        }else{
+        } else {
             noEventsTextview.setVisibility(View.GONE);
             listViewOfEvents.setVisibility(View.VISIBLE);
             adapterEvents = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, events);
@@ -401,25 +434,26 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     @Override
     protected void onResume() {
         super.onResume();
-        if(mTemperature!=null){
+        if (mTemperature != null) {
             mSensorManager.registerListener(this, mTemperature, SensorManager.SENSOR_DELAY_NORMAL);
         }
-        if(mHumidity!=null){
+        if (mHumidity != null) {
             mSensorManager.registerListener(this, mHumidity, SensorManager.SENSOR_DELAY_NORMAL);
         }
         new Handler().postDelayed(new Runnable() {
-            @Override public void run() {
-                if(hasTempSensor()){
+            @Override
+            public void run() {
+                if (hasTempSensor()) {
                     //este delayed run é necessário porque se o sensor for
                     // medido imediatamente quando a app inicia os valores vão estar a 0
-                            cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
-                            cityTemperatureUser.setText(" (this device) ");
+                    cityTemperatureDataUser.setText(" | " + getTemp() + " ºC");
+                    cityTemperatureUser.setText(" (this device) ");
                 }
-                if(hasHumSensor()){
+                if (hasHumSensor()) {
                     //estes runnables não atrazam o iniciar da app e são executados apenas depois de o utilizador
                     //estar a ver toda a UI devido a estarem dentro de um OnResume();
-                        cityHumidityDataUser.setText(" | " + getHum() + " %");
-                        cityHumidityUser.setText(" (this device) ");
+                    cityHumidityDataUser.setText(" | " + getHum() + " %");
+                    cityHumidityUser.setText(" (this device) ");
                 }
             }
         }, 1000);
@@ -436,27 +470,27 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         }
 
         new Handler().postDelayed(new Runnable() {
-            @Override public void run() {
+            @Override
+            public void run() {
                 swipeRefresh.setRefreshing(false);
             }
         }, 1500);
     }
 
 
-
-
     public static LinkedList<City> getCities() {
         LinkedList<City> filteredCities = (LinkedList<City>) cities.clone();
         Iterator<City> iterator = filteredCities.iterator();
 
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             City cc = iterator.next();
-            if (cc.getName().equals("GPS")){
+            if (cc.getName().equals("GPS")) {
                 iterator.remove();    // You can do the modification here.
             }
         }
         return filteredCities;
     }
+
     public static LinkedList<Country> getCountries() {
         return countries;
     }
@@ -471,18 +505,18 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         // Last entry id:
         int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
 
-        for (int i=0; i<last; i++){
+        for (int i = 0; i < last; i++) {
             System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"));
             System.out.println(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2"));
-            countries.add(new Country(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"),jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2")));
+            countries.add(new Country(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"), jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2")));
         }
 
         //System.out.println(countries);
     }
 
-    public Country findCountryWithID(String id){
-        for (Country c : countries ) {
-            if(c.getId().equals(id)){
+    public Country findCountryWithID(String id) {
+        for (Country c : countries) {
+            if (c.getId().equals(id)) {
                 return c;
             }
         }
@@ -495,7 +529,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         // Last entry id:
         int last = jsonObject.getJSONObject("channel").getInt("last_entry_id");
 
-        for (int i=0; i<last; i++){
+        for (int i = 0; i < last; i++) {
             cities.add(new City(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field1"), findCountryWithID(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field2")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field3")), Double.parseDouble(jsonObject.getJSONArray("feeds").getJSONObject(i).getString("field4"))));
         }
 
@@ -505,7 +539,6 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         //System.out.println(cities);
 
     }
-
 
 
     @Override
@@ -523,14 +556,13 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     }
 
 
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.btnCity:
                 Intent appInfo = new Intent(DashBoardActivity.this, CityListActivity.class);
-                startActivityForResult(appInfo,REQUEST_FAV);
+                startActivityForResult(appInfo, REQUEST_FAV);
                 break;
             case R.id.btnSettings:
                 Intent settingsIntent = new Intent(DashBoardActivity.this, SettingsActivity.class);
@@ -544,20 +576,23 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     }
 
     public static void updateFavorite(String city) {
-        for (City c:cities){
-            if(c.isFavorite()){
+        for (City c : cities) {
+            if (c.isFavorite()) {
                 c.setFavorite(false);
             }
         }
-        for (City c:cities){
-            if(c.getName().equals(city)){
+        for (City c : cities) {
+            if (c.getName().equals(city)) {
                 c.setFavorite(true);
+
+
             }
         }
     }
+
     public static boolean isCityFavorite(String city) {
-        for(City c : cities){
-            if(c.getName().equals(city)){
+        for (City c : cities) {
+            if (c.getName().equals(city)) {
                 return c.isFavorite();
             }
         }
@@ -565,7 +600,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     }
 
 
-    private City currentLocation(){
+    private City currentLocation() {
         GPSTracker gps = new GPSTracker(this);
 
         City nearestCity = null;
@@ -583,52 +618,48 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                 lon = gps.getLongitude();
                 lat = gps.getLatitude();
 
-                for(City city:cities){
-                    if(!city.getName().equals("GPS")){
+                for (City city : cities) {
+                    if (!city.getName().equals("GPS")) {
                         kmAux = getDistanceFromLatLonInKm(lat, lon, city.getLatitude(), city.getLongitude());
-                        if (kmNearest > kmAux || kmNearest == 0){
+                        if (kmNearest > kmAux || kmNearest == 0) {
                             kmNearest = kmAux;
                             nearestCity = city;
                         }
                     }
                 }
             }
-        }else{
-            lat=Double.MIN_VALUE;
-            lon=Double.MIN_VALUE;
+        } else {
+            lat = Double.MIN_VALUE;
+            lon = Double.MIN_VALUE;
             showAlert();
         }
 
         //Toast.makeText(DashBoardActivity.this, "Nearest City is " + nearestCity.getName() + " " +roundOff(kmNearest) +"km away...", Toast.LENGTH_LONG).show();
 
 
-
-
         return nearestCity;
 
     }
-    public double getDistanceFromLatLonInKm(double lat1, double lon1, double lat2, double lon2)
-    {
+
+    public double getDistanceFromLatLonInKm(double lat1, double lon1, double lat2, double lon2) {
         double R = 6371; // Radius of the earth in km
-        double dLat = deg2rad(lat2-lat1);  // deg2rad below
-        double dLon = deg2rad(lon2-lon1);
+        double dLat = deg2rad(lat2 - lat1);  // deg2rad below
+        double dLon = deg2rad(lon2 - lon1);
         double a =
-                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                         Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-                                Math.sin(dLon/2) * Math.sin(dLon/2)
-                ;
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double d = R * c; // Distance in km
         return d;
     }
 
 
-
     public double deg2rad(double deg) {
-        return (deg * (Math.PI/180));
+        return (deg * (Math.PI / 180));
     }
 
-    public double roundOff(double input){
+    public double roundOff(double input) {
         return (double) Math.round(input * 100) / 100;
     }
 
@@ -655,7 +686,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode==RESULT_OK && requestCode==REQUEST_FAV) {
+        if (resultCode == RESULT_OK && requestCode == REQUEST_FAV) {
             try {
                 atualizarLista();
             } catch (IOException e) {
@@ -663,7 +694,7 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-        }else if(resultCode==RESULT_CANCELED){
+        } else if (resultCode == RESULT_CANCELED) {
             finish();
         }
     }
@@ -673,8 +704,8 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         URL url = new URL(urlString);
         urlConnection = (HttpURLConnection) url.openConnection();
         urlConnection.setRequestMethod("GET");
-        urlConnection.setReadTimeout(10000 /* milliseconds */ );
-        urlConnection.setConnectTimeout(15000 /* milliseconds */ );
+        urlConnection.setReadTimeout(10000 /* milliseconds */);
+        urlConnection.setConnectTimeout(15000 /* milliseconds */);
         urlConnection.setDoOutput(true);
         urlConnection.connect();
 
@@ -694,16 +725,16 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     }
 
 
-    public static String generateUsername(){
+    public static String generateUsername() {
         Random ran = new Random();
         return "user" + ran.nextInt();
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == Sensor.TYPE_AMBIENT_TEMPERATURE){
+        if (event.sensor.getType() == Sensor.TYPE_AMBIENT_TEMPERATURE) {
             ambientTemperature = (float) roundOff(event.values[0]);
-        }else if(event.sensor.getType() == Sensor.TYPE_RELATIVE_HUMIDITY){
+        } else if (event.sensor.getType() == Sensor.TYPE_RELATIVE_HUMIDITY) {
             relativeHumidity = (float) roundOff(event.values[0]);
         }
     }
@@ -714,18 +745,17 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     }
 
 
-
     @Override
     protected void onPause() {
         super.onPause();
-        if(mTemperature!=null || mHumidity!=null){
+        if (mTemperature != null || mHumidity != null) {
             mSensorManager.unregisterListener(this);
         }
 
     }
 
     //humidade em g/m3 atualmente não é usado
-    public double calculateAbsoluteHumidity(){
+    public double calculateAbsoluteHumidity() {
         return (216.7 *
                 (relativeHumidity /
                         100.0 * 6.112 * Math.exp(17.62 * ambientTemperature /
@@ -733,15 +763,15 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                         (273.15 + ambientTemperature)));
     }
 
-    public static float getTemp(){
+    public static float getTemp() {
         return ambientTemperature;
     }
 
-    public static float getHum(){
+    public static float getHum() {
         return relativeHumidity;
     }
 
-    public static double getLon(){
+    public static double getLon() {
         return lon;
     }
 
@@ -749,12 +779,12 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         return lat;
     }
 
-    public boolean hasTempSensor(){
+    public boolean hasTempSensor() {
         PackageManager manager = getPackageManager();
         return manager.hasSystemFeature(PackageManager.FEATURE_SENSOR_AMBIENT_TEMPERATURE);
     }
 
-    public boolean hasHumSensor(){
+    public boolean hasHumSensor() {
         PackageManager manager = getPackageManager();
         return manager.hasSystemFeature(PackageManager.FEATURE_SENSOR_RELATIVE_HUMIDITY);
     }

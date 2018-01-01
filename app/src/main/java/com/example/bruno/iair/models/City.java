@@ -1,10 +1,14 @@
 package com.example.bruno.iair.models;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Environment;
+
+import com.example.bruno.iair.activities.DashBoardActivity;
+import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -303,5 +307,14 @@ public class City {
 
     public LinkedList<SensorsData> getSensorsDataHistory() {
         return sensorsDataHistory;
+    }
+
+    public static City getFavoriteCityByName(LinkedList<City> cities, String city) {
+        for(City c: cities){
+            if (c.isFavorite() == true && city == c.getName()){
+                return c;
+            }
+        }
+        return null;
     }
 }
