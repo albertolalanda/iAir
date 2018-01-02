@@ -1,10 +1,12 @@
 package com.example.bruno.iair.models;
 
+import java.util.Date;
+
 /**
  * Created by tiago on 11/24/17.
  */
 
-public class TDate {
+public class TDate{
     private int year;
     private int month;
     private int day;
