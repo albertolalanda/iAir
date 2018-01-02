@@ -1,81 +1,60 @@
 package com.example.bruno.iair.activities;
 
 import android.annotation.SuppressLint;
-import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.StrictMode;
-import android.provider.SyncStateContract;
-import android.support.v4.view.MenuItemCompat;
 import android.provider.Settings;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.text.Layout;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.bruno.iair.R;
 import com.example.bruno.iair.models.City;
 import com.example.bruno.iair.models.Country;
 import com.example.bruno.iair.models.Event;
-import com.example.bruno.iair.models.TDate;
 import com.example.bruno.iair.services.AppStatus;
 import com.example.bruno.iair.services.GPSTracker;
-import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.sql.SQLOutput;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Random;
 
 import static android.R.layout.simple_list_item_1;
-import static android.view.View.GONE;
 import static java.lang.Boolean.FALSE;
 
 public class DashBoardActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, SensorEventListener {
@@ -208,10 +187,25 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                 //TODO: create and save file of airData, SensorsData and EvenstsData => updateData from JsonObject from files
                 String airDataURL = "https://api.thingspeak.com/channels/373908/feeds.json?api_key=IRDG2HB6BC8VG461";
                 jsonObjectAirQualityData = getJSONObjectFromURL(airDataURL);
+                String FILENAME = "airData.json";
+                FileOutputStream fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
+                fos.write(jsonObjectAirQualityData.toString().getBytes());
+                fos.close();
+
                 String sensorsURL = "https://api.thingspeak.com/channels/373891/feeds.json?api_key=VC0UA9ODEMHK7APY";
                 jsonObjectDataCitySensors = getJSONObjectFromURL(sensorsURL);
+                String FILENAME2 = "SensorsData.json";
+                FileOutputStream fos2 = openFileOutput(FILENAME2, Context.MODE_PRIVATE);
+                fos2.write(jsonObjectDataCitySensors.toString().getBytes());
+                fos2.close();
+
                 String eventsURL = "https://api.thingspeak.com/channels/371908/feeds.json?api_key=1SED3ZW7C4B1A8J2";
                 jsonObjectCityEvents = getJSONObjectFromURL(eventsURL);
+                String FILENAME3 = "EvenstsData.json";
+                FileOutputStream fos3 = openFileOutput(FILENAME3, Context.MODE_PRIVATE);
+                fos3.write(jsonObjectCityEvents.toString().getBytes());
+                fos3.close();
+
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (JSONException e) {
@@ -281,7 +275,19 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                 startActivityForResult(appInfo, REQUEST_FAV);
 
             }
-        } else{
+        } else {
+            final AlertDialog alertDialog2 = new AlertDialog.Builder(this).create();
+            alertDialog2.setTitle("Alert");
+            alertDialog2.setMessage("No saved data!");
+            alertDialog2.setButton(AlertDialog.BUTTON_POSITIVE, "Close",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+
+
+                            System.exit(0);
+
+                        }
+                    });
             AlertDialog alertDialog = new AlertDialog.Builder(this).create();
             alertDialog.setTitle("Alert");
             alertDialog.setMessage("No internet Connection!");
@@ -297,21 +303,43 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Continue",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
+                                File file = new File("countries.json");
 
-                            getSupportActionBar().setIcon(R.drawable.ic_offline_icon);
-                            loadCountriesFromFile();
-                            loadCitiesFromFile();
-                            Intent appInfo = new Intent(DashBoardActivity.this, SelectFavoriteCityActivity.class);
-                            startActivityForResult(appInfo, REQUEST_FAV);
+                            if (file.exists()) {
+                                getSupportActionBar().setIcon(R.drawable.ic_offline_icon);
+                                loadCountriesFromFile();
+                                loadCitiesFromFile();
+                                jsonObjectAirQualityData = loadAirDatafromFile();
+                                jsonObjectDataCitySensors = loadSensorsDatafromFile();
+                                jsonObjectCityEvents = loadCityEventsfromFile();
+
+                                try {
+                                    for (City c : DashBoardActivity.getCities()) {
+                                        c.updateData(jsonObjectAirQualityData, jsonObjectDataCitySensors, jsonObjectCityEvents);
+                                    }
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+                                Intent appInfo = new Intent(DashBoardActivity.this, SelectFavoriteCityActivity.class);
+                                startActivityForResult(appInfo, REQUEST_FAV);
+
+                            } else {
+
+                                alertDialog2.show();
+
+                            }
+
 
                         }
-                    });
+
+                        });
             alertDialog.show();
+
+
         }
-
-
-
-
 
 
         //SEND SENSOR DATA
@@ -359,6 +387,75 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
         });
 
 
+    }
+
+    private JSONObject loadCityEventsfromFile() {
+        FileInputStream fileInput = null;
+        try {
+            fileInput = openFileInput("EvenstsData.json");
+
+            int c;
+            String message = "";
+            while ((c = fileInput.read()) != -1) {
+                message += String.valueOf((char) c);
+
+
+            }
+            System.out.println("message from file: " + message);
+            JSONObject jsonObject = new JSONObject(message);
+            return jsonObject;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private JSONObject loadSensorsDatafromFile() {
+        FileInputStream fileInput = null;
+        try {
+            fileInput = openFileInput("SensorsData.json");
+
+            int c;
+            String message = "";
+            while ((c = fileInput.read()) != -1) {
+                message += String.valueOf((char) c);
+
+
+            }
+            System.out.println("message from file: " + message);
+            JSONObject jsonObject = new JSONObject(message);
+            return jsonObject;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private JSONObject loadAirDatafromFile() {
+        FileInputStream fileInput = null;
+        try {
+            fileInput = openFileInput("airData.json");
+
+            int c;
+            String message = "";
+            while ((c = fileInput.read()) != -1) {
+                message += String.valueOf((char) c);
+
+
+            }
+            System.out.println("message from file: " + message);
+            JSONObject jsonObject = new JSONObject(message);
+            return jsonObject;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private void loadCountriesFromFile() {
