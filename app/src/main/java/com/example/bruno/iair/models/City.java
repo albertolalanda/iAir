@@ -331,4 +331,6 @@ public class City {
 
         return airTotal/airQualityHistory.size();
     }
+
+
 }

@@ -1,7 +1,10 @@
 package com.example.bruno.iair.activities;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -22,6 +25,7 @@ import android.widget.Toast;
 import com.example.bruno.iair.R;
 import com.example.bruno.iair.models.City;
 import com.example.bruno.iair.models.Country;
+import com.example.bruno.iair.services.AppStatus;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -41,6 +45,8 @@ public class SelectFavoriteCityActivity extends AppCompatActivity implements Ada
         setContentView(R.layout.activity_select_favorite_city);
         Toolbar myToolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
+
+
 
         cities = DashBoardActivity.getCities();
         filteredCities = (LinkedList<City>) cities.clone();

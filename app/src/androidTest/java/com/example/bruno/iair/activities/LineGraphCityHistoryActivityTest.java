@@ -66,26 +66,6 @@ public class LineGraphCityHistoryActivityTest {
             e.printStackTrace();
         }
 
-        ViewInteraction appCompatButton = onView(
-                allOf(withId(R.id.buttonCityHistory), withText("History"),
-                        childAtPosition(
-                                childAtPosition(
-                                        withId(R.id.layoutInfoo),
-                                        0),
-                                1),
-                        isDisplayed()));
-        appCompatButton.perform(click());
-
-        ViewInteraction view = onView(
-                allOf(withId(R.id.AQIGraph),
-                        childAtPosition(
-                                allOf(withId(R.id.graphs),
-                                        childAtPosition(
-                                                withId(R.id.cityData),
-                                                0)),
-                                0),
-                        isDisplayed()));
-        view.check(matches(isDisplayed()));
 
     }
 
