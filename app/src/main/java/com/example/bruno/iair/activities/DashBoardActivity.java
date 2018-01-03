@@ -30,6 +30,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.bruno.iair.R;
 import com.example.bruno.iair.models.City;
@@ -303,9 +304,9 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
             alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Continue",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                                File file = new File("countries.json");
 
-                            if (file.exists()) {
+
+                            if (checkIfFilesExist()) {
                                 getSupportActionBar().setIcon(R.drawable.ic_offline_icon);
                                 loadCountriesFromFile();
                                 loadCitiesFromFile();
@@ -499,6 +500,22 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
 
     }
 
+    private boolean checkIfFilesExist() {
+        FileInputStream fileInput = null;
+        try {
+            fileInput = openFileInput("countries.json");
+            if (fileInput.read() != -1)
+                return true;
+
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private void loadCitiesFromFile() {
         FileInputStream fileInput = null;
         try {
@@ -664,7 +681,12 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
     @Override
     public void onRefresh() {
         try {
-            atualizarListaRefresh();
+            if (AppStatus.getInstance(this).isOnline()) {
+                atualizarListaRefresh();
+            } else {
+                Toast.makeText(this, "Operation not permitted on offline mode", Toast.LENGTH_SHORT).show();
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         } catch (JSONException e) {
