@@ -14,6 +14,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 
 /**
@@ -303,5 +306,29 @@ public class City {
 
     public LinkedList<SensorsData> getSensorsDataHistory() {
         return sensorsDataHistory;
+    }
+
+    public double getOverallAverageAQI(TDate date1, TDate date2) throws ParseException {
+        double airTotal = 0;
+        String date1Sring = date1.getYear()+"/"+date1.getMonth()+"/"+date1.getDay()
+            ,date2Sring = date2.getYear()+"/"+date2.getMonth()+"/"+date2.getDay(),
+                dateAuxString;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+        Date sDate = sdf.parse(date1Sring),
+                eDate = sdf.parse(date2Sring),
+                auxDate;
+
+        for (AirQualityData air : airQualityHistory){
+            dateAuxString = air.getDate().getYear()+"/"+air.getDate().getMonth()+"/"+air.getDate().getDay();
+            auxDate = sdf.parse(dateAuxString);
+            System.out.println(name + ": " + air.getDate());
+            System.out.println(auxDate.after(sDate) && auxDate.before(eDate));
+            if (auxDate.after(sDate) && auxDate.before(eDate)) {
+                System.out.println(name + "V2: " + air.getDate());
+                airTotal += air.getAveragePPM();
+            }
+        }
+
+        return airTotal/airQualityHistory.size();
     }
 }

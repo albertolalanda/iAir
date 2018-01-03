@@ -2,7 +2,10 @@
 <resources>
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#fff240</color>
+    <color name="colorAccent">#ffff70</color>
     <color name="SamsungBlueBackground">#00ADEE </color>
     <color name="white">#FFFFFF </color>
+    <color name="colorModerate">#ffff70</color>
+    <color name="colorGood">#82ff82</color>
+    <color name="colorBad">#ff4747</color>
 </resources>

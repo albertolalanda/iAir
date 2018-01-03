@@ -298,6 +298,16 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                 startActivity(appHistoryInfo);
             }
         });
+
+        //CHECK ALL HISTORY
+        Button buttonAllCitiesHistory = findViewById(R.id.allHistoryBtn);
+        buttonAllCitiesHistory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent appHistoryInfo = new Intent(DashBoardActivity.this, AllCitiesHistoryActivity.class);
+                startActivity(appHistoryInfo);
+            }
+        });
     }
 
 
