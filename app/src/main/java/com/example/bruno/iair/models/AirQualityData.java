@@ -1,5 +1,7 @@
 package com.example.bruno.iair.models;
 
+import java.util.Date;
+
 /**
  * Created by tiago on 11/27/17.
  */

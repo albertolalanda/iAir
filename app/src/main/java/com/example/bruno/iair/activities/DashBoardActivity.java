@@ -1,9 +1,11 @@
 package com.example.bruno.iair.activities;
 
 import android.annotation.SuppressLint;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -27,6 +29,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -36,29 +40,29 @@ import com.example.bruno.iair.R;
 import com.example.bruno.iair.models.City;
 import com.example.bruno.iair.models.Country;
 import com.example.bruno.iair.models.Event;
-import com.example.bruno.iair.services.AppStatus;
+import com.example.bruno.iair.models.TDate;
 import com.example.bruno.iair.services.GPSTracker;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.SQLOutput;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 import static android.R.layout.simple_list_item_1;
 import static java.lang.Boolean.FALSE;
 
-public class DashBoardActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, SensorEventListener {
+public class DashBoardActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener,SensorEventListener {
 
     public static LinkedList<City> cities;
     public static LinkedList<Country> countries;
@@ -383,6 +387,16 @@ public class DashBoardActivity extends AppCompatActivity implements SwipeRefresh
                 Intent appHistoryInfo = new Intent(DashBoardActivity.this, CityHistoryActivity.class);
                 String data = favoriteCity.getName();
                 appHistoryInfo.putExtra("city", data);
+                startActivity(appHistoryInfo);
+            }
+        });
+
+        //CHECK ALL HISTORY
+        Button buttonAllCitiesHistory = findViewById(R.id.allHistoryBtn);
+        buttonAllCitiesHistory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent appHistoryInfo = new Intent(DashBoardActivity.this, AllCitiesHistoryActivity.class);
                 startActivity(appHistoryInfo);
             }
         });

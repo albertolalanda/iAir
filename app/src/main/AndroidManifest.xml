@@ -30,6 +30,7 @@
         <activity android:name=".activities.EventsDataActivity" />
         <activity android:name=".activities.SettingsActivity" />
         <activity android:name=".activities.CityHistoryActivity" />
+        <activity android:name=".activities.AllCitiesHistoryActivity"></activity>
     </application>
 
 </manifest>
